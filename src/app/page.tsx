@@ -6,32 +6,32 @@ import { CheckCircle, Download, Edit3, FileText, Lightbulb, SearchCheck, Sparkle
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center text-foreground">
+    <div className="flex flex-col items-center text-foreground overflow-x-hidden"> {/* Added overflow-x-hidden to prevent horizontal scrollbars from animations */}
       {/* Hero Section */}
       <section className="w-full py-20 md:py-32 bg-gradient-to-br from-background to-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 text-center md:text-left">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-primary">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-primary animate-in fade-in slide-in-from-left-8 duration-700 delay-100">
               Stop Staring at a Blank Page:
               <br />
               <span className="text-foreground">Generate Blog Posts in Minutes with AI</span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground">
+            <p className="text-lg sm:text-xl text-muted-foreground animate-in fade-in slide-in-from-left-8 duration-700 delay-200">
               BlogCraft AI: Your AI Co-writer for Faster, Smarter Blogging. Go from keyword to drafted post with SEO insights, effortlessly.
             </p>
-            <p className="text-md text-foreground/80">
+            <p className="text-md text-foreground/80 animate-in fade-in slide-in-from-left-8 duration-700 delay-300">
               BlogCraft AI is an innovative, AI-powered assistant designed to revolutionize the initial stages of blog creation. It helps you overcome writer's block and efficiently generate drafted, SEO-friendly content, transforming your ideas into publishable material in minutes.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-in fade-in slide-in-from-left-8 duration-700 delay-400">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg transform hover:scale-105 transition-transform duration-200">
                 <Link href="#cta">Start Creating Now</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="shadow-md border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
+              <Button asChild size="lg" variant="outline" className="shadow-md border-primary/50 text-primary hover:bg-primary/10 hover:text-primary transform hover:scale-105 transition-transform duration-200">
                 <Link href="#how-it-works">Learn How It Works</Link>
               </Button>
             </div>
           </div>
-          <div className="relative aspect-video rounded-xl shadow-2xl overflow-hidden group">
+          <div className="relative aspect-video rounded-xl shadow-2xl overflow-hidden group animate-in zoom-in-95 duration-500 delay-300">
             <Image
               src="https://picsum.photos/seed/blogcraft-hero/1280/720"
               alt="BlogCraft AI interface screenshot showing AI writing assistance"
@@ -52,44 +52,28 @@ export default function HomePage() {
       {/* Problem/Pain Section */}
       <section className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">Feeling Stuck with Content Creation?</h2>
-          <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground animate-in fade-in slide-in-from-bottom-5 duration-500">Feeling Stuck with Content Creation?</h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
             You're not alone. Many writers and marketers face these common hurdles:
           </p>
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <Zap className="w-12 h-12 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">Tired of writer's block?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">The blank page can be intimidating, making it hard to start and stay creative.</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                </div>
-                <CardTitle className="text-2xl">Struggling to find time?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Content creation is time-consuming, especially when juggling multiple responsibilities.</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <Target className="w-12 h-12 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">Overwhelmed by SEO basics?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Getting started with SEO can feel complex, delaying your content's reach.</p>
-              </CardContent>
-            </Card>
+            {[
+              { icon: <Zap className="w-12 h-12 text-primary" />, title: "Tired of writer's block?", desc: "The blank page can be intimidating, making it hard to start and stay creative.", delay: 200 },
+              { icon: <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>, title: "Struggling to find time?", desc: "Content creation is time-consuming, especially when juggling multiple responsibilities.", delay: 300 },
+              { icon: <Target className="w-12 h-12 text-primary" />, title: "Overwhelmed by SEO basics?", desc: "Getting started with SEO can feel complex, delaying your content's reach.", delay: 400 }
+            ].map((problem) => (
+              <Card key={problem.title} className={`shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${problem.delay}`}>
+                <CardHeader>
+                  <div className="flex justify-center mb-4">
+                    {problem.icon}
+                  </div>
+                  <CardTitle className="text-2xl">{problem.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{problem.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -97,8 +81,8 @@ export default function HomePage() {
       {/* Solution/Benefit Section */}
       <section className="w-full py-16 md:py-24 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-primary">Welcome to Effortless Blogging</h2>
-          <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-primary animate-in fade-in slide-in-from-bottom-5 duration-500">Welcome to Effortless Blogging</h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
             BlogCraft AI is the solution. Imagine effortlessly generating compelling blog ideas, drafting content, and getting initial SEO guidance, all in one place.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -107,8 +91,8 @@ export default function HomePage() {
               { title: "Sparks Creativity", desc: "Overcome writer's block with fresh AI-generated ideas.", icon: <Lightbulb className="w-8 h-8 text-accent" /> },
               { title: "Simplifies SEO", desc: "Get foundational SEO suggestions without the headache.", icon: <TrendingUp className="w-8 h-8 text-accent" /> },
               { title: "Boosts Productivity", desc: "Publish more high-quality content, more often.", icon: <ThumbsUp className="w-8 h-8 text-accent" /> }
-            ].map(benefit => (
-              <div key={benefit.title} className="p-6 bg-card rounded-lg shadow-md flex flex-col items-center text-center">
+            ].map((benefit, index) => (
+              <div key={benefit.title} className={`p-6 bg-card rounded-lg shadow-md flex flex-col items-center text-center transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 2) * 100} duration-300`}>
                 <div className="p-3 bg-accent/10 rounded-full mb-4">{benefit.icon}</div>
                 <h3 className="text-xl font-semibold mb-2 text-foreground">{benefit.title}</h3>
                 <p className="text-sm text-muted-foreground">{benefit.desc}</p>
@@ -121,7 +105,7 @@ export default function HomePage() {
       {/* How It Works Section */}
       <section id="how-it-works" className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-foreground">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-foreground animate-in fade-in slide-in-from-bottom-5 duration-500">
             Create Stunning Blogs in 4 Simple Steps
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
@@ -154,7 +138,7 @@ export default function HomePage() {
                 imgHint: "export options dialog"
               }
             ].map((step, index) => (
-              <Card key={step.title} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 group relative z-10 bg-card">
+              <Card key={step.title} className={`text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 group relative z-10 bg-card animate-in fade-in zoom-in-95 delay-${(index + 1) * 150} duration-300`}>
                 <CardHeader className="items-center">
                   {step.icon}
                   <CardTitle className="text-2xl">{step.title}</CardTitle>
@@ -181,7 +165,7 @@ export default function HomePage() {
       {/* Key Features & Benefits Section */}
       <section className="w-full py-16 md:py-24 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-primary">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-primary animate-in fade-in slide-in-from-bottom-5 duration-500">
             Powerful Features to Elevate Your Content
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
@@ -210,8 +194,8 @@ export default function HomePage() {
                 desc: "Easily take your generated content wherever you need it. Download your drafts in common formats, ready for editing and publishing on your preferred platform.",
                 benefit: "Benefit: Seamlessly integrate into your workflow."
               }
-            ].map(feature => (
-               <Card key={feature.title} className="shadow-md hover:shadow-lg transition-shadow duration-300">
+            ].map((feature, index) => (
+               <Card key={feature.title} className={`shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 1) * 150} duration-300`}>
                 <CardHeader className="flex flex-row items-center gap-4">
                   <div className="p-3 bg-accent/10 rounded-full">{feature.icon}</div>
                   <div>
@@ -231,13 +215,13 @@ export default function HomePage() {
       {/* Who Is BlogCraft For? Section */}
       <section className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">Perfect For...</h2>
-          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground animate-in fade-in slide-in-from-bottom-5 duration-500">Perfect For...</h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
             BlogCraft AI is the ideal content creation tool for a diverse range of users looking to enhance their blogging efficiency and quality.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            {["Busy Bloggers", "Agile Marketing Teams", "Freelance Content Creators", "Small & Medium Businesses", "Anyone new to SEO content"].map(target => (
-              <div key={target} className="flex items-center gap-2 bg-card p-4 rounded-lg shadow-sm border border-border">
+            {["Busy Bloggers", "Agile Marketing Teams", "Freelance Content Creators", "Small & Medium Businesses", "Anyone new to SEO content"].map((target, index) => (
+              <div key={target} className={`flex items-center gap-2 bg-card p-4 rounded-lg shadow-sm border border-border transform hover:scale-105 hover:shadow-md transition-all duration-200 animate-in fade-in zoom-in-90 delay-${(index + 2) * 100} duration-200`}>
                 <CheckCircle className="w-5 h-5 text-primary" />
                 <span className="font-medium text-foreground/90">{target}</span>
               </div>
@@ -249,17 +233,17 @@ export default function HomePage() {
       {/* Call to Action Section */}
       <section id="cta" className="w-full py-20 md:py-32 bg-gradient-to-br from-primary to-accent/80 text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6 animate-in fade-in slide-in-from-bottom-5 duration-500">
             Ready to Revolutionize Your Blogging Workflow?
           </h2>
-          <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
             Be among the first to experience the power of AI in content creation. Try BlogCraft MVP now and transform how you write.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in zoom-in-95 duration-300 delay-200">
             <Button asChild size="lg" className="bg-background text-primary hover:bg-background/90 shadow-xl transform hover:scale-105 transition-transform duration-200">
               <Link href="#">Try BlogCraft MVP Now</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground shadow-lg">
+            <Button asChild size="lg" variant="outline" className="border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground shadow-lg transform hover:scale-105 transition-transform duration-200">
               <Link href="#">Join Our Beta</Link>
             </Button>
           </div>
@@ -268,3 +252,4 @@ export default function HomePage() {
     </div>
   );
 }
+
