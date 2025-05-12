@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle, Download, Edit3, FileText, Lightbulb, SearchCheck, Sparkles, Target, ThumbsUp, TrendingUp, Users, Zap } from "lucide-react";
+import { CheckCircle, Clock, Download, Edit3, FileText, Lightbulb, SearchCheck, Sparkles, Target, ThumbsUp, TrendingUp, Zap, PenLine } from "lucide-react";
+import React from "react";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center text-foreground overflow-x-hidden"> {/* Added overflow-x-hidden to prevent horizontal scrollbars from animations */}
+    <div className="flex flex-col items-center text-foreground overflow-x-hidden">
       {/* Hero Section */}
       <section className="w-full py-20 md:py-32 bg-gradient-to-br from-background to-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
@@ -24,7 +25,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-in fade-in slide-in-from-left-8 duration-700 delay-400">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg transform hover:scale-105 transition-transform duration-200">
-                <Link href="#cta">Start Creating Now</Link>
+                <Link href="/app/dashboard">Start Creating Now</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="shadow-md border-primary/50 text-primary hover:bg-primary/10 hover:text-primary transform hover:scale-105 transition-transform duration-200">
                 <Link href="#how-it-works">Learn How It Works</Link>
@@ -33,14 +34,14 @@ export default function HomePage() {
           </div>
           <div className="relative aspect-video rounded-xl shadow-2xl overflow-hidden group animate-in zoom-in-95 duration-500 delay-300">
             <Image
-              src="https://picsum.photos/seed/blogcraft-hero/1280/720"
-              alt="BlogCraft AI interface screenshot showing AI writing assistance"
+              src="https://picsum.photos/seed/ai-writing/1280/720"
+              alt="AI powered content creation interface"
               layout="fill"
               objectFit="cover"
               className="transform group-hover:scale-105 transition-transform duration-300 ease-in-out"
-              data-ai-hint="AI writing interface"
+              data-ai-hint="ai writing"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent"></div>
             <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 rounded-lg shadow-md">
               <p className="text-sm font-semibold text-primary">AI-Powered Content Drafting</p>
               <p className="text-xs text-muted-foreground">Visualize your ideas taking shape.</p>
@@ -58,19 +59,19 @@ export default function HomePage() {
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: <Zap className="w-12 h-12 text-primary" />, title: "Tired of writer's block?", desc: "The blank page can be intimidating, making it hard to start and stay creative.", delay: 200 },
-              { icon: <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>, title: "Struggling to find time?", desc: "Content creation is time-consuming, especially when juggling multiple responsibilities.", delay: 300 },
-              { icon: <Target className="w-12 h-12 text-primary" />, title: "Overwhelmed by SEO basics?", desc: "Getting started with SEO can feel complex, delaying your content's reach.", delay: 400 }
+              { icon: Zap, title: "Tired of writer's block?", desc: "The blank page can be intimidating, making it hard to start and stay creative.", delay: 200 },
+              { icon: Clock, title: "Struggling to find time?", desc: "Content creation is time-consuming, especially when juggling multiple responsibilities.", delay: 300 },
+              { icon: Target, title: "Overwhelmed by SEO basics?", desc: "Getting started with SEO can feel complex, delaying your content's reach.", delay: 400 }
             ].map((problem) => (
-              <Card key={problem.title} className={`shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${problem.delay}`}>
-                <CardHeader>
-                  <div className="flex justify-center mb-4">
-                    {problem.icon}
+              <Card key={problem.title} className={`flex flex-col text-center shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 bg-card animate-in fade-in zoom-in-95 delay-${problem.delay} overflow-hidden rounded-xl`}>
+                <CardHeader className="pt-8 pb-4 items-center">
+                  <div className="p-4 bg-primary/10 rounded-full mb-4 inline-block shadow-md">
+                    <problem.icon className="w-12 h-12 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">{problem.title}</CardTitle>
+                  <CardTitle className="text-xl font-semibold text-foreground">{problem.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{problem.desc}</p>
+                <CardContent className="flex-grow pb-6">
+                  <p className="text-muted-foreground px-2">{problem.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -92,8 +93,8 @@ export default function HomePage() {
               { title: "Simplifies SEO", desc: "Get foundational SEO suggestions without the headache.", icon: <TrendingUp className="w-8 h-8 text-accent" /> },
               { title: "Boosts Productivity", desc: "Publish more high-quality content, more often.", icon: <ThumbsUp className="w-8 h-8 text-accent" /> }
             ].map((benefit, index) => (
-              <div key={benefit.title} className={`p-6 bg-card rounded-lg shadow-md flex flex-col items-center text-center transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 2) * 100} duration-300`}>
-                <div className="p-3 bg-accent/10 rounded-full mb-4">{benefit.icon}</div>
+              <div key={benefit.title} className={`p-6 bg-card rounded-xl shadow-lg flex flex-col items-center text-center transform hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 2) * 100} duration-300`}>
+                <div className="p-3 bg-accent/10 rounded-full mb-4 shadow-sm">{benefit.icon}</div>
                 <h3 className="text-xl font-semibold mb-2 text-foreground">{benefit.title}</h3>
                 <p className="text-sm text-muted-foreground">{benefit.desc}</p>
               </div>
@@ -105,55 +106,58 @@ export default function HomePage() {
       {/* How It Works Section */}
       <section id="how-it-works" className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-foreground animate-in fade-in slide-in-from-bottom-5 duration-500">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-16 text-foreground animate-in fade-in slide-in-from-bottom-5 duration-500"> 
             Create Stunning Blogs in 4 Simple Steps
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {/* Dashed line connecting steps - for larger screens */}
-            <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-primary/50 -translate-y-1/2" style={{zIndex: -1}}></div>
+            <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-primary/40 -translate-y-1/2" style={{zIndex: -1}}></div>
             
             {[
               { 
-                icon: <Sparkles className="w-10 h-10 text-primary mb-4" />, 
+                icon: Sparkles, 
                 title: "1. Spark Ideas", 
                 desc: "Enter your keywords and get instant blog title & outline suggestions from our AI blog generator.",
-                imgHint: "keyword input idea list"
+                imgHint: "keyword input"
               },
               { 
-                icon: <Edit3 className="w-10 h-10 text-primary mb-4" />, 
+                icon: PenLine, 
                 title: "2. Draft Instantly", 
                 desc: "Select an idea, and let our AI writer draft your blog post in minutes.",
-                imgHint: "text editor AI draft"
+                imgHint: "ai editor"
               },
               { 
-                icon: <SearchCheck className="w-10 h-10 text-primary mb-4" />, 
+                icon: SearchCheck, 
                 title: "3. Optimize Smartly", 
                 desc: "Get AI-powered meta title and description suggestions for better SEO content.",
-                imgHint: "SEO suggestions form"
+                imgHint: "seo form"
               },
               { 
-                icon: <Download className="w-10 h-10 text-primary mb-4" />, 
+                icon: Download, 
                 title: "4. Export & Go", 
                 desc: "Download your content easily and get ready to publish on your platform.",
-                imgHint: "export options dialog"
+                imgHint: "export dialog"
               }
             ].map((step, index) => (
-              <Card key={step.title} className={`text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 group relative z-10 bg-card animate-in fade-in zoom-in-95 delay-${(index + 1) * 150} duration-300`}>
-                <CardHeader className="items-center">
-                  {step.icon}
-                  <CardTitle className="text-2xl">{step.title}</CardTitle>
+              <Card key={step.title} className={`flex flex-col text-center shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 group relative z-10 bg-card animate-in fade-in zoom-in-95 delay-${(index + 1) * 200} duration-300 overflow-hidden rounded-xl`}>
+                <div className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
+                  <step.icon className="w-12 h-12 text-primary mx-auto" />
+                </div>
+                <CardHeader className="pt-6">
+                  <CardTitle className="text-2xl group-hover:text-primary transition-colors duration-300">{step.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{step.desc}</p>
-                  <div className="aspect-video bg-muted rounded-md overflow-hidden relative mt-4">
+                <CardContent className="flex-grow flex flex-col p-6 pt-0">
+                  <p className="text-muted-foreground mb-6 flex-grow">{step.desc}</p>
+                  <div className="aspect-video bg-muted rounded-lg overflow-hidden relative mt-auto shadow-inner">
                     <Image 
-                      src={`https://picsum.photos/seed/step${index+1}/400/225`} 
+                      src={`https://picsum.photos/seed/workflow${index+1}/400/225`} 
                       alt={`Visual for ${step.title}`}
                       layout="fill"
                       objectFit="cover"
                       data-ai-hint={step.imgHint}
-                      className="transform group-hover:scale-105 transition-transform duration-300"
+                      className="transform group-hover:scale-110 transition-transform duration-500 ease-in-out"
                     />
+                     <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-300"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -171,39 +175,39 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-8">
             {[
               { 
-                icon: <Lightbulb className="w-8 h-8 text-accent" />, 
+                icon: Lightbulb, 
                 title: "AI Idea Generation", 
                 desc: "Never run out of topics. Enter a keyword and BlogCraft AI instantly provides engaging titles and structured outlines. Overcome writer's block and keep your content calendar full.",
                 benefit: "Benefit: End writer's block, continuous topic supply."
               },
               { 
-                icon: <FileText className="w-8 h-8 text-accent" />, 
+                icon: FileText, 
                 title: "AI Content Drafting", 
                 desc: "Transform outlines into comprehensive first drafts in minutes. Our advanced AI writer crafts well-structured, coherent content, saving you hours of writing time.",
                 benefit: "Benefit: Get solid first drafts fast, save writing hours."
               },
               { 
-                icon: <SearchCheck className="w-8 h-8 text-accent" />, 
+                icon: SearchCheck, 
                 title: "Basic SEO Suggestions", 
                 desc: "Start your SEO right from the beginning. BlogCraft AI suggests optimized meta titles and descriptions to improve your content's discoverability on search engines.",
                 benefit: "Benefit: Improve discoverability, simplify initial SEO."
               },
               { 
-                icon: <Download className="w-8 h-8 text-accent" />, 
+                icon: Download, 
                 title: "Simple Export", 
                 desc: "Easily take your generated content wherever you need it. Download your drafts in common formats, ready for editing and publishing on your preferred platform.",
                 benefit: "Benefit: Seamlessly integrate into your workflow."
               }
             ].map((feature, index) => (
-               <Card key={feature.title} className={`shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 1) * 150} duration-300`}>
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="p-3 bg-accent/10 rounded-full">{feature.icon}</div>
+               <Card key={feature.title} className={`shadow-lg hover:shadow-xl border border-transparent hover:border-primary/30 transform hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in zoom-in-95 delay-${(index + 1) * 150} duration-300 rounded-xl`}>
+                <CardHeader className="flex flex-row items-center gap-4 p-6">
+                  <div className="p-3 bg-accent/10 rounded-full shadow-sm"><feature.icon className="w-8 h-8 text-accent" /></div>
                   <div>
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
-                    <CardDescription className="text-sm">{feature.benefit}</CardDescription>
+                    <CardDescription className="text-sm text-muted-foreground">{feature.benefit}</CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6 pt-0">
                   <p className="text-muted-foreground">{feature.desc}</p>
                 </CardContent>
               </Card>
@@ -221,7 +225,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {["Busy Bloggers", "Agile Marketing Teams", "Freelance Content Creators", "Small & Medium Businesses", "Anyone new to SEO content"].map((target, index) => (
-              <div key={target} className={`flex items-center gap-2 bg-card p-4 rounded-lg shadow-sm border border-border transform hover:scale-105 hover:shadow-md transition-all duration-200 animate-in fade-in zoom-in-90 delay-${(index + 2) * 100} duration-200`}>
+              <div key={target} className={`flex items-center gap-2 bg-card p-4 rounded-lg shadow-md border border-border hover:border-primary/50 transform hover:scale-105 hover:shadow-lg transition-all duration-200 animate-in fade-in zoom-in-90 delay-${(index + 2) * 100} duration-200`}>
                 <CheckCircle className="w-5 h-5 text-primary" />
                 <span className="font-medium text-foreground/90">{target}</span>
               </div>
@@ -240,10 +244,19 @@ export default function HomePage() {
             Be among the first to experience the power of AI in content creation. Try BlogCraft MVP now and transform how you write.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in zoom-in-95 duration-300 delay-200">
-            <Button asChild size="lg" className="bg-background text-primary hover:bg-background/90 shadow-xl transform hover:scale-105 transition-transform duration-200">
-              <Link href="#">Try BlogCraft MVP Now</Link>
+            <Button
+              asChild
+              size="lg"
+              className="bg-background text-primary hover:bg-background/90 shadow-xl transform hover:scale-105 transition-transform duration-200"
+            >
+              <Link href="/app/dashboard">Try BlogCraft MVP Now</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground shadow-lg transform hover:scale-105 transition-transform duration-200"
+            >
               <Link href="#">Join Our Beta</Link>
             </Button>
           </div>
@@ -252,4 +265,3 @@ export default function HomePage() {
     </div>
   );
 }
-
