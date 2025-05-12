@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export default function DashboardPage() {
               A guided workflow to generate blog ideas, draft content, and optimize SEO all in one place.
             </p>
             <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/app/app/blog-writer">
+              <Link href="/app/blog-writer">
                 <FilePlus className="mr-2 h-5 w-5" /> Create New Blog Post
               </Link>
             </Button>
@@ -47,7 +48,7 @@ export default function DashboardPage() {
               View, edit, or delete your existing blog posts. Keep your content organized and up-to-date.
             </p>
             <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/app/app/dashboard/blog">
+              <Link href="/app/dashboard/blog">
                 <ListChecks className="mr-2 h-5 w-5" /> View My Posts
               </Link>
             </Button>

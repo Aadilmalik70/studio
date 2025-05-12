@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/generate-blog-ideas';
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
-import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck } from 'lucide-react';
 import type { BlogPost } from '@/app/app/dashboard/blog/page'; // Ensure this type is exported
 
 
@@ -136,14 +136,14 @@ const BlogWriterPage = () => {
         title: 'Blog Post Saved!',
         description: `"${blogTitle}" has been saved successfully.`,
         action: (
-          <Button variant="outline" size="sm" onClick={() => router.push('/app/app/dashboard/blog')}>
+          <Button variant="outline" size="sm" onClick={() => router.push('/app/dashboard/blog')}>
             View Posts
           </Button>
         ),
       });
       // Optionally reset form or navigate
       // resetForm(); // Implement resetForm if needed
-      // router.push('/app/app/dashboard/blog');
+      // router.push('/app/dashboard/blog');
     } catch (error) {
         console.error("Failed to save post to localStorage", error);
         toast({ title: 'Error', description: 'Failed to save blog post to local storage.', variant: 'destructive' });
@@ -361,7 +361,7 @@ const BlogWriterPage = () => {
               Next <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-             <Button onClick={() => router.push('/app/app/dashboard')} variant="secondary">
+             <Button onClick={() => router.push('/app/dashboard')} variant="secondary">
               Finish & Go to Dashboard
             </Button>
           )}

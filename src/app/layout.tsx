@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -18,6 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'BlogCraft AI - AI Powered Blog Content Generation',
   description: 'Generate blog posts in minutes with AI. Go from keyword to drafted post with SEO insights, effortlessly.',
+  icons: null, // Prevent default favicon handling
 };
 
 export default function RootLayout({

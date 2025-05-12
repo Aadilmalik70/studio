@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,7 @@ export default function AppRootPage() {
             This is the main application section. Navigate to the dashboard to access AI tools and manage your content.
           </p>
           <Button asChild size="lg">
-            <Link href="/app/app/dashboard">
+            <Link href="/app/dashboard">
               Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
