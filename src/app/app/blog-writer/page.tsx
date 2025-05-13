@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,11 +14,12 @@ import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/gene
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
 import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck } from 'lucide-react';
-import type { BlogPost } from '@/app/app/dashboard/blog/page'; // Ensure this type is exported
+import type { BlogPost } from '@/app/app/dashboard/blog/page'; 
 
 
 const BlogWriterPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -45,11 +46,18 @@ const BlogWriterPage = () => {
   const progressValue = (currentStep / totalSteps) * 100;
 
   useEffect(() => {
+    const keywordsFromQuery = searchParams.get('keywords');
+    if (keywordsFromQuery) {
+      setKeyword(decodeURIComponent(keywordsFromQuery));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (selectedIdeaIndex !== null && generatedIdeas[selectedIdeaIndex]) {
       const idea = generatedIdeas[selectedIdeaIndex];
       setBlogTitle(idea.title);
       setBlogOutline(idea.outline);
-      setSeoKeyword(keyword); // Default SEO keyword to initial keyword
+      setSeoKeyword(keyword); 
     }
   }, [selectedIdeaIndex, generatedIdeas, keyword]);
 
@@ -121,10 +129,11 @@ const BlogWriterPage = () => {
       id: new Date().toISOString(),
       title: blogTitle,
       content: draftedContent,
-      // Add meta fields if your BlogPost type supports them, or extend the type
-      // metaTitle: metaTitle,
-      // metaDescription: metaDescription,
-      // outline: blogOutline, 
+      metaTitle: metaTitle,
+      metaDescription: metaDescription,
+      outline: blogOutline,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     try {
@@ -141,9 +150,10 @@ const BlogWriterPage = () => {
           </Button>
         ),
       });
-      // Optionally reset form or navigate
-      // resetForm(); // Implement resetForm if needed
-      // router.push('/app/dashboard/blog');
+      // Optionally reset form or navigate after save
+      // For example, to go to the dashboard: router.push('/app/dashboard/blog');
+      // Or to reset the form for a new post:
+      // setCurrentStep(1); setKeyword(''); setGeneratedIdeas([]); setSelectedIdeaIndex(null); // etc.
     } catch (error) {
         console.error("Failed to save post to localStorage", error);
         toast({ title: 'Error', description: 'Failed to save blog post to local storage.', variant: 'destructive' });
@@ -155,6 +165,22 @@ const BlogWriterPage = () => {
   const nextStep = () => {
     if (currentStep === 1 && selectedIdeaIndex === null) {
       toast({ title: 'Error', description: 'Please select a blog idea to proceed.', variant: 'destructive' });
+      return;
+    }
+     if (currentStep === 1 && generatedIdeas.length === 0 && !keyword.trim()) {
+      toast({ title: 'Error', description: 'Please generate or enter keywords and select an idea.', variant: 'destructive' });
+      return;
+    }
+    if (currentStep === 1 && generatedIdeas.length > 0 && selectedIdeaIndex === null) {
+      toast({ title: 'Error', description: 'Please select one of the generated ideas.', variant: 'destructive' });
+      return;
+    }
+    if (currentStep === 2 && !draftedContent) {
+      toast({ title: 'Error', description: 'Please draft content before proceeding.', variant: 'destructive' });
+      return;
+    }
+    if (currentStep === 3 && (!metaTitle || !metaDescription)) {
+       toast({ title: 'Error', description: 'Please optimize SEO before proceeding.', variant: 'destructive' });
       return;
     }
     if (currentStep < totalSteps) setCurrentStep(s => s + 1);
@@ -179,18 +205,18 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Wand2 className="text-accent" /> Step 1: Generate Blog Ideas</CardTitle>
-                <CardDescription>Enter a keyword to brainstorm blog titles and outlines.</CardDescription>
+                <CardDescription>Enter keyword(s) to brainstorm blog titles and outlines. You can use comma-separated keywords from your research.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleGenerateIdeas} className="space-y-4">
                   <div>
-                    <Label htmlFor="keyword">Keyword</Label>
+                    <Label htmlFor="keyword">Keyword(s)</Label>
                     <Input
                       id="keyword"
                       type="text"
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
-                      placeholder="e.g., AI in Marketing"
+                      placeholder="e.g., AI in Marketing, content strategy tips"
                       className="mt-1"
                     />
                   </div>
@@ -237,7 +263,6 @@ const BlogWriterPage = () => {
                     value={blogTitle} 
                     onChange={(e) => setBlogTitle(e.target.value)}
                     className="mt-1 text-lg font-semibold"
-                    readOnly // Title is usually set from idea, could be made editable
                   />
                 </div>
                 <div>
@@ -354,15 +379,15 @@ const BlogWriterPage = () => {
           </Button>
           {currentStep < totalSteps ? (
             <Button onClick={nextStep} disabled={
-              (currentStep === 1 && selectedIdeaIndex === null) ||
+              (currentStep === 1 && (generatedIdeas.length === 0 || selectedIdeaIndex === null)) || // Ensure idea is selected if ideas were generated
               (currentStep === 2 && !draftedContent) ||
               (currentStep === 3 && (!metaTitle || !metaDescription))
             }>
               Next <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-             <Button onClick={() => router.push('/app/dashboard')} variant="secondary">
-              Finish & Go to Dashboard
+             <Button onClick={() => router.push('/app/dashboard/blog')} variant="secondary">
+              Finish & Go to My Posts
             </Button>
           )}
         </CardFooter>

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, FileText, SearchCheck, Home, FileSignature, ListChecks, FilePlus } from "lucide-react";
+import { Lightbulb, FileText, SearchCheck, Home, FileSignature, ListChecks, FilePlus, SearchIcon, NotebookPen } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -17,6 +17,25 @@ export default function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl overflow-hidden group">
+          <CardHeader className="bg-gradient-to-br from-primary/10 to-accent/10 p-6">
+            <div className="flex items-center gap-4">
+              <NotebookPen className="w-10 h-10 text-primary" />
+              <CardTitle className="text-2xl group-hover:text-primary transition-colors">Keyword Research</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <p className="text-muted-foreground mb-6">
+              Discover trending keywords, analyze search intent, and find topic clusters to fuel your content strategy.
+            </p>
+            <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Link href="/app/keyword-research">
+                <SearchIcon className="mr-2 h-5 w-5" /> Start Researching
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-xl overflow-hidden group">
           <CardHeader className="bg-gradient-to-br from-primary/10 to-accent/10 p-6">
             <div className="flex items-center gap-4">
