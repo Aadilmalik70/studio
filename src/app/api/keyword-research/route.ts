@@ -13,6 +13,7 @@ const KeywordResearchRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  console.log('Received request to /api/keyword-research');
   try {
     const body = await request.json();
     const validationResult = KeywordResearchRequestSchema.safeParse(body);
@@ -22,15 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { seedKeywords, targetCountry, targetLanguage } = validationResult.data;
-
-    // --- Mocked Third-Party SEO Data API Integration ---
-    // In a real application, these calls would go to the actual SEO API client
-    // and would likely be asynchronous.
     
     const seedKeywordMetricsPromises = seedKeywords.map(async (kw) => {
       const metrics = await getKeywordMetrics(kw, targetCountry, targetLanguage);
-      const intent = await analyzeKeywordIntent({ keyword: kw });
-      return { ...metrics, intent: intent.intent };
+      const intentResult = await analyzeKeywordIntent({ keyword: kw });
+      return { ...metrics, intent: intentResult.intent };
     });
     const seedKeywordMetrics: KeywordMetric[] = await Promise.all(seedKeywordMetricsPromises);
 
@@ -44,25 +41,23 @@ export async function POST(request: NextRequest) {
         Promise.all(longTailKeywordsPromises).then(res => res.flat())
     ]);
 
-    // Add intent to related keywords
     const relatedKeywordsWithIntentPromises = relatedKeywordsFlat.map(async (metric) => {
-        const intent = await analyzeKeywordIntent({ keyword: metric.keyword });
-        return { ...metric, intent: intent.intent };
+        const intentResult = await analyzeKeywordIntent({ keyword: metric.keyword });
+        return { ...metric, intent: intentResult.intent };
     });
     const relatedKeywords: KeywordMetric[] = await Promise.all(relatedKeywordsWithIntentPromises);
 
     const questionKeywordsWithIntentPromises = questionKeywordsFlat.map(async (metric) => {
-        const intent = await analyzeKeywordIntent({ keyword: metric.keyword });
-        return { ...metric, intent: intent.intent };
+        const intentResult = await analyzeKeywordIntent({ keyword: metric.keyword });
+        return { ...metric, intent: intentResult.intent };
     });
     const questionKeywords: KeywordMetric[] = await Promise.all(questionKeywordsWithIntentPromises);
     
     const longTailKeywordsWithIntentPromises = longTailKeywordsFlat.map(async (metric) => {
-        const intent = await analyzeKeywordIntent({ keyword: metric.keyword });
-        return { ...metric, intent: intent.intent };
+        const intentResult = await analyzeKeywordIntent({ keyword: metric.keyword });
+        return { ...metric, intent: intentResult.intent };
     });
     const longTailKeywords: KeywordMetric[] = await Promise.all(longTailKeywordsWithIntentPromises);
-
 
     const allGeneratedKeywords = [
       ...relatedKeywords.map(k => k.keyword),
@@ -77,21 +72,36 @@ export async function POST(request: NextRequest) {
         topicClusters = clusteringResult.clusters;
     }
 
-
     const responseData: KeywordResearchResponse = {
       seedKeywordMetrics,
       relatedKeywords,
       questionKeywords,
       longTailKeywords,
       topicClusters,
-      // This message indicates that real API integration is pending
       error: "Note: Displaying sample data. Real-time SEO data API integration is pending.", 
     };
 
     return NextResponse.json(responseData, { status: 200 });
 
-  } catch (error: any) {
-    console.error('Keyword research API error:', error);
-    return NextResponse.json({ error: error.message || 'An unexpected error occurred during keyword research.' }, { status: 500 });
+  } catch (error: unknown) { 
+    console.error('Keyword research API critical error:', error);
+    let errorMessage = 'An unexpected error occurred during keyword research.';
+    let errorDetails;
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = error.stack;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (typeof error === 'object' && error !== null) {
+      errorMessage = JSON.stringify(error);
+    }
+    
+    // Log the full error structure for better debugging if it's not a standard Error instance
+    if (!(error instanceof Error)) {
+        console.error('Full error object structure:', JSON.stringify(error, null, 2));
+    }
+
+    return NextResponse.json({ error: errorMessage, details: errorDetails }, { status: 500 });
   }
 }

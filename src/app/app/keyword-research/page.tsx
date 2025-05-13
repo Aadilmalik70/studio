@@ -23,8 +23,8 @@ const KeywordResearchPage = () => {
 
   const handleResearch = async (requestData: KeywordResearchRequest) => {
     setIsLoading(true);
-    setKeywordData(null); // Clear previous results
-    setSelectedKeywords([]); // Clear selected keywords
+    setKeywordData(null); 
+    setSelectedKeywords([]); 
     try {
       const response = await fetch('/api/keyword-research', {
         method: 'POST',
@@ -33,15 +33,41 @@ const KeywordResearchPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch keyword data');
+        let errorPayload = { error: `Request failed: ${response.status} ${response.statusText}` };
+        try {
+          // Try to read the response as text first to check if it's HTML
+          const responseText = await response.text();
+          if (responseText.trim().startsWith('<')) { // Basic check for HTML
+            console.error('Server returned HTML instead of JSON:', responseText.substring(0, 500) + '...');
+            // Try to extract a title or h1 from the HTML for a slightly better error message
+            const titleMatch = responseText.match(/<title>(.*?)<\/title>/i);
+            const h1Match = responseText.match(/<h1[^>]*>(.*?)<\/h1>/i);
+            if (titleMatch && titleMatch[1]) {
+              errorPayload.error = `Server error: ${titleMatch[1]}`;
+            } else if (h1Match && h1Match[1]) {
+              errorPayload.error = `Server error: ${h1Match[1]}`;
+            } else {
+               errorPayload.error = 'Server returned an HTML error page. Check server logs for details.';
+            }
+          } else {
+            // If not HTML, then try to parse as JSON
+            errorPayload = JSON.parse(responseText);
+          }
+        } catch (e) {
+          // Parsing failed or it was HTML, use the default errorPayload or the extracted HTML error
+          console.error('Failed to parse error response or response was HTML:', e);
+        }
+        throw new Error(errorPayload.error || `Failed to fetch keyword data: ${response.statusText}`);
       }
 
       const data: KeywordResearchResponse = await response.json();
       setKeywordData(data);
-      if (data.error) {
+      if (data.error && data.error.startsWith("Note:")) { // Distinguish API notes from actual errors
          toast({ title: 'API Info', description: data.error, variant: 'default' });
-      } else {
+      } else if (data.error) {
+         toast({ title: 'Research Error', description: data.error, variant: 'destructive' });
+      }
+       else {
         toast({ title: 'Success', description: 'Keyword research completed.' });
       }
     } catch (error: any) {
@@ -95,7 +121,18 @@ const KeywordResearchPage = () => {
             </div>
           )}
 
-          {keywordData && !keywordData.error && (
+          {keywordData && !keywordData.error?.startsWith("Note:") && keywordData.error && ( // Display actual errors differently
+             <Card className="border-destructive bg-destructive/10">
+                <CardHeader>
+                    <CardTitle className="text-destructive">Research Error</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-destructive-foreground">{keywordData.error}</p>
+                </CardContent>
+             </Card>
+          )}
+
+          {keywordData && (keywordData.seedKeywordMetrics || keywordData.relatedKeywords) && ( // Check if there's some data to display
             <KeywordResultsDisplay 
               data={keywordData} 
               selectedKeywords={selectedKeywords}
@@ -103,19 +140,10 @@ const KeywordResearchPage = () => {
               onClusterSelect={handleClusterSelect}
             />
           )}
-          {keywordData?.error && !isLoading && (
-             <Card className="border-destructive">
-                <CardHeader>
-                    <CardTitle className="text-destructive">Research Note</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>{keywordData.error}</p>
-                </CardContent>
-             </Card>
-          )}
+         
         </CardContent>
         <CardFooter className="mt-8">
-            {keywordData && !keywordData.error && (
+            {keywordData && (keywordData.seedKeywordMetrics || keywordData.relatedKeywords) && (
                  <Button 
                     onClick={handleUseKeywordsForIdeas} 
                     disabled={selectedKeywords.length === 0 || isLoading}
