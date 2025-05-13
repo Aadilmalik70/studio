@@ -114,18 +114,24 @@ const BlogWriterPage = () => {
     suggestions.forEach(suggestion => {
       if (suggestion.insertAfterParagraphContaining && suggestion.insertAfterParagraphContaining.trim() !== "") {
         const snippet = suggestion.insertAfterParagraphContaining;
-        const snippetIndex = newDraft.indexOf(snippet);
-        if (snippetIndex !== -1) {
-          const paragraphEndIndex = newDraft.indexOf("\n\n", snippetIndex + snippet.length);
-          const insertImageAt = paragraphEndIndex !== -1 ? paragraphEndIndex : newDraft.length; 
-          
-          const imageMarkdown = `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
-          
-          newDraft = newDraft.substring(0, insertImageAt) + imageMarkdown + newDraft.substring(insertImageAt);
-        } else {
-            console.warn(`Snippet "${snippet}" not found in draft. Image for "${suggestion.imageConcept}" appended as fallback.`);
+        
+        // Try to find a more robust insertion point, e.g., end of paragraph containing snippet
+        const paragraphs = newDraft.split("\n\n");
+        let foundAndInserted = false;
+        for (let i = 0; i < paragraphs.length; i++) {
+            if (paragraphs[i].includes(snippet)) {
+                const imageMarkdown = `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
+                paragraphs.splice(i + 1, 0, imageMarkdown.trim()); // Insert after the found paragraph
+                newDraft = paragraphs.join("\n\n");
+                foundAndInserted = true;
+                break;
+            }
+        }
+        if (!foundAndInserted) {
+            console.warn(`Snippet "${snippet}" not found in draft for robust insertion. Image for "${suggestion.imageConcept}" appended as fallback.`);
             newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
         }
+
       } else {
          console.warn(`No placement snippet for image "${suggestion.imageConcept}". Appending image as fallback.`);
          newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
@@ -156,7 +162,7 @@ const BlogWriterPage = () => {
         const newContentWithImages = insertImagesIntoDraft(draftedContent, result.imageSuggestions);
         setDraftedContent(newContentWithImages);
         toast({ title: 'Success', description: `${result.imageSuggestions.length} AI images generated and inserted!` });
-        setShowPreview(true); // Automatically switch to preview after inserting images
+        setShowPreview(true); 
       } else {
         toast({ title: 'Info', description: 'No AI images were generated. Try refining your content or try again.' });
       }
@@ -180,8 +186,8 @@ const BlogWriterPage = () => {
       setMetaTitle(result.metaTitle);
       setMetaDescription(result.metaDescription);
       toast({ title: 'Success', description: 'SEO metadata generated!' });
-      setCurrentStep(4);
-      setShowPreview(true); 
+      // setCurrentStep(4); // Do not proceed automatically, allow for image generation
+      setShowPreview(false); // Show markdown editor by default after SEO optimization
     } catch (error) {
       console.error('Error optimizing SEO:', error);
       toast({ title: 'Error', description: 'Failed to optimize SEO.', variant: 'destructive' });
@@ -320,7 +326,7 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><DraftingCompass className="text-accent"/> Step 2: Draft Your Blog Post</CardTitle>
-                <CardDescription>Review and refine the outline, then draft the content. AI Image generation is available in Step 4.</CardDescription>
+                <CardDescription>Review and refine the outline, then draft the content. AI Image generation is available in Step 3.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -366,17 +372,40 @@ const BlogWriterPage = () => {
             </Card>
           )}
 
-          {/* Step 3: Optimize SEO */}
+          {/* Step 3: Optimize SEO & Add Images */}
           {currentStep === 3 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize for SEO</CardTitle>
-                <CardDescription>Generate SEO-friendly meta title and description. AI Image generation is available in Step 4.</CardDescription>
+                 <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize SEO &amp; Add Images</CardTitle>
+                    {(metaTitle || draftedContent.includes("![")) && ( // Show preview toggle if SEO is done or images are present
+                         <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
+                            {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                            {showPreview ? 'Edit Markdown' : 'Preview Content'}
+                        </Button>
+                    )}
+                 </div>
+                <CardDescription>Generate SEO metadata and then (optionally) generate & insert AI images into your draft.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                 {draftedContent && (
-                    <div className="mb-4">
-                        <Label htmlFor="draftedContentSeoStep">Current Draft (Markdown)</Label>
+              <CardContent className="space-y-6">
+                 <div>
+                    <Label htmlFor="draftedContentSeoStep" className="text-lg font-semibold">
+                        {showPreview ? "Content Preview:" : "Current Draft (Markdown):"}
+                    </Label>
+                    {showPreview ? (
+                        <ScrollArea className="h-[400px] mt-1 p-4 bg-muted rounded-md border">
+                        <article className="prose dark:prose-invert lg:prose-xl max-w-none">
+                            <ReactMarkdown
+                            components={{
+                                // eslint-disable-next-line @next/next/no-img-element
+                                img: ({node, ...props}) => <img {...props} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4"/>
+                            }}
+                            >
+                            {draftedContent}
+                            </ReactMarkdown>
+                        </article>
+                        </ScrollArea>
+                    ) : (
                         <Textarea
                             id="draftedContentSeoStep"
                             value={draftedContent}
@@ -384,8 +413,9 @@ const BlogWriterPage = () => {
                             rows={10}
                             className="mt-1 bg-secondary/30"
                         />
-                    </div>
-                )}
+                    )}
+                 </div>
+
                 <div>
                   <Label htmlFor="seoKeyword">Focus SEO Keyword</Label>
                   <Input
@@ -398,10 +428,11 @@ const BlogWriterPage = () => {
                 </div>
                 <Button onClick={handleOptimizeSeo} disabled={isLoading.seo || !draftedContent.trim() || !seoKeyword.trim()} className="w-full sm:w-auto">
                   {isLoading.seo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Optimize SEO &amp; Proceed to Review
+                  Optimize SEO
                 </Button>
-                {metaTitle && (
-                  <div className="mt-6 space-y-2">
+
+                {metaTitle && ( // Show SEO fields only after optimization
+                  <div className="mt-6 space-y-2 border-t pt-6">
                     <div>
                       <Label htmlFor="metaTitle">Meta Title</Label>
                       <Input id="metaTitle" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} className="mt-1 bg-secondary/30"/>
@@ -410,6 +441,17 @@ const BlogWriterPage = () => {
                       <Label htmlFor="metaDescription">Meta Description</Label>
                       <Textarea id="metaDescription" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} rows={3} className="mt-1 bg-secondary/30"/>
                     </div>
+                     <Button 
+                        onClick={handleSuggestAndInsertImages} 
+                        disabled={isLoading.images || !draftedContent.trim() || !metaTitle} 
+                        variant="outline" 
+                        className="w-full sm:w-auto mt-4"
+                      >
+                        {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Sparkles className="mr-2 h-4 w-4 text-accent" /> 
+                        {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate & Insert Images"}
+                      </Button>
+                      {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images... This may take a moment.</p>}
                   </div>
                 )}
               </CardContent>
@@ -421,13 +463,13 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review, Add Images &amp; Save</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review &amp; Save</CardTitle>
                   <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
                     {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                     {showPreview ? 'Edit Markdown' : 'Preview Content'}
                   </Button>
                 </div>
-                <CardDescription>Review your blog post. In "Edit Markdown" mode, you can generate and insert AI images. Then, save your post.</CardDescription>
+                <CardDescription>Final review of your blog post. Ensure everything looks good before saving.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
@@ -465,28 +507,14 @@ const BlogWriterPage = () => {
                       </article>
                     </ScrollArea>
                   ) : (
-                    <>
-                      <Textarea
+                    <Textarea
                         id="reviewDraftedContent"
                         value={draftedContent}
                         onChange={(e) => setDraftedContent(e.target.value)}
                         rows={25}
                         className="mt-1 p-3 bg-muted rounded-md"
                         placeholder="Your blog post content in Markdown will appear here..."
-                      />
-                      <Button 
-                        onClick={handleSuggestAndInsertImages} 
-                        disabled={isLoading.images || !draftedContent.trim()} 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                      >
-                        {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        <Sparkles className="mr-2 h-4 w-4 text-accent" /> 
-                        {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate &amp; Insert Images"}
-                      </Button>
-                      {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images... This may take a moment.</p>}
-                    </>
+                    />
                   )}
                 </div>
                 
