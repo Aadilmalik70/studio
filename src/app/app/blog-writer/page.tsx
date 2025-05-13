@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
@@ -112,29 +113,30 @@ const BlogWriterPage = () => {
   const insertImagesIntoDraft = (currentDraft: string, suggestions: ImageSuggestion[]): string => {
     let newDraft = currentDraft;
     suggestions.forEach(suggestion => {
-      if (suggestion.insertAfterParagraphContaining && suggestion.insertAfterParagraphContaining.trim() !== "") {
-        const snippet = suggestion.insertAfterParagraphContaining;
-        
-        // Try to find a more robust insertion point, e.g., end of paragraph containing snippet
-        const paragraphs = newDraft.split("\n\n");
-        let foundAndInserted = false;
-        for (let i = 0; i < paragraphs.length; i++) {
-            if (paragraphs[i].includes(snippet)) {
-                const imageMarkdown = `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
-                paragraphs.splice(i + 1, 0, imageMarkdown.trim()); // Insert after the found paragraph
-                newDraft = paragraphs.join("\n\n");
-                foundAndInserted = true;
-                break;
-            }
+      if (suggestion.imageDataUri && suggestion.imageDataUri.trim() !== "") { // Ensure imageDataUri is not empty
+        const imageMarkdown = `\n\n![${suggestion.altText || 'AI Generated Image'}](${suggestion.imageDataUri})\n\n`;
+        if (suggestion.insertAfterParagraphContaining && suggestion.insertAfterParagraphContaining.trim() !== "") {
+          const snippet = suggestion.insertAfterParagraphContaining;
+          const paragraphs = newDraft.split("\n\n");
+          let foundAndInserted = false;
+          for (let i = 0; i < paragraphs.length; i++) {
+              if (paragraphs[i].includes(snippet)) {
+                  paragraphs.splice(i + 1, 0, imageMarkdown.trim());
+                  newDraft = paragraphs.join("\n\n");
+                  foundAndInserted = true;
+                  break;
+              }
+          }
+          if (!foundAndInserted) {
+              console.warn(`Snippet "${snippet}" not found. Appending image for "${suggestion.imageConcept}" as fallback.`);
+              newDraft += imageMarkdown;
+          }
+        } else {
+           console.warn(`No placement snippet for image "${suggestion.imageConcept}". Appending image as fallback.`);
+           newDraft += imageMarkdown;
         }
-        if (!foundAndInserted) {
-            console.warn(`Snippet "${snippet}" not found in draft for robust insertion. Image for "${suggestion.imageConcept}" appended as fallback.`);
-            newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
-        }
-
       } else {
-         console.warn(`No placement snippet for image "${suggestion.imageConcept}". Appending image as fallback.`);
-         newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
+        console.warn(`Skipping image suggestion with empty imageDataUri for concept: "${suggestion.imageConcept}"`);
       }
     });
     return newDraft;
@@ -186,8 +188,7 @@ const BlogWriterPage = () => {
       setMetaTitle(result.metaTitle);
       setMetaDescription(result.metaDescription);
       toast({ title: 'Success', description: 'SEO metadata generated!' });
-      // setCurrentStep(4); // Do not proceed automatically, allow for image generation
-      setShowPreview(false); // Show markdown editor by default after SEO optimization
+      setShowPreview(false); 
     } catch (error) {
       console.error('Error optimizing SEO:', error);
       toast({ title: 'Error', description: 'Failed to optimize SEO.', variant: 'destructive' });
@@ -378,7 +379,7 @@ const BlogWriterPage = () => {
               <CardHeader>
                  <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize SEO &amp; Add Images</CardTitle>
-                    {(metaTitle || draftedContent.includes("![")) && ( // Show preview toggle if SEO is done or images are present
+                    {(metaTitle || draftedContent.includes("![")) && ( 
                          <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
                             {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                             {showPreview ? 'Edit Markdown' : 'Preview Content'}
@@ -398,7 +399,12 @@ const BlogWriterPage = () => {
                             <ReactMarkdown
                             components={{
                                 // eslint-disable-next-line @next/next/no-img-element
-                                img: ({node, ...props}) => <img {...props} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4"/>
+                                img: ({node, ...props}) => {
+                                  if (!props.src) {
+                                    return null;
+                                  }
+                                  return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto"/>;
+                                }
                             }}
                             >
                             {draftedContent}
@@ -431,7 +437,7 @@ const BlogWriterPage = () => {
                   Optimize SEO
                 </Button>
 
-                {metaTitle && ( // Show SEO fields only after optimization
+                {metaTitle && ( 
                   <div className="mt-6 space-y-2 border-t pt-6">
                     <div>
                       <Label htmlFor="metaTitle">Meta Title</Label>
@@ -499,7 +505,12 @@ const BlogWriterPage = () => {
                         <ReactMarkdown
                           components={{
                             // eslint-disable-next-line @next/next/no-img-element
-                            img: ({node, ...props}) => <img {...props} alt={props.alt || 'Blog image'} />
+                            img: ({node, ...props}) => {
+                              if (!props.src) {
+                                return null;
+                              }
+                              return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto"/>;
+                            }
                           }}
                         >
                           {draftedContent}
@@ -570,3 +581,4 @@ const BlogWriterPage = () => {
 };
 
 export default BlogWriterPage;
+
