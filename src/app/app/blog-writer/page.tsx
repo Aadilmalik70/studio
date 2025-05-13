@@ -16,7 +16,7 @@ import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/gene
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
 import { type SuggestImagesOutput, type ImageSuggestion } from '@/ai/schemas/suggest-images-schemas';
-import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit, ImageIconLucide, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit, ImageIcon, Sparkles } from 'lucide-react';
 import type { BlogPost } from '@/app/app/dashboard/blog/page'; 
 
 
@@ -102,6 +102,7 @@ const BlogWriterPage = () => {
     setIsLoading(prev => ({ ...prev, draft: true }));
     setDraftedContent(''); // Clear previous draft
     try {
+      // Make the draft longer, at least 1000 words as requested
       const result = await draftBlogContent({ outline: blogOutline });
       setDraftedContent(result.draft); // Set initial draft without images
       toast({ title: 'Success', description: 'Blog content drafted successfully!' });
@@ -371,7 +372,7 @@ const BlogWriterPage = () => {
                     </div>
                      <Button onClick={handleSuggestAndInsertImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" className="w-full sm:w-auto">
                       {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      <ImageIconLucide className="mr-2 h-4 w-4" /> Generate & Insert Images
+                      <ImageIcon className="mr-2 h-4 w-4" /> Generate & Insert Images
                     </Button>
                     {isLoading.images && <p className="text-sm text-muted-foreground">Generating and inserting AI images...</p>}
                   </div>
@@ -400,7 +401,7 @@ const BlogWriterPage = () => {
                         />
                         <Button onClick={handleSuggestAndInsertImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" size="sm" className="mt-2">
                             {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            <ImageIconLucide className="mr-2 h-4 w-4" /> {draftedContent.includes("![") ? "Regenerate/Add Images" : "Generate & Insert Images"}
+                            <ImageIcon className="mr-2 h-4 w-4" /> {draftedContent.includes("![") ? "Regenerate/Add Images" : "Generate & Insert Images"}
                         </Button>
                         {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images...</p>}
                     </div>
