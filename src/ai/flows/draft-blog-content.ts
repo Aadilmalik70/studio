@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -27,7 +26,13 @@ const draftBlogContentPrompt = ai.definePrompt({
   name: 'draftBlogContentPrompt',
   input: {schema: DraftBlogContentInputSchema},
   output: {schema: DraftBlogContentOutputSchema},
-  prompt: `You are an AI-powered blog content generator. Generate a blog post draft based on the following outline:\n\nOutline: {{{outline}}}\n\nDraft: `,
+  prompt: `You are an AI-powered blog content generator. Generate a comprehensive and engaging blog post draft based on the following outline.
+The blog post should be well-structured, informative, and at least 500 words long.
+Ensure proper paragraphing and flow.
+
+Outline: {{{outline}}}
+
+Draft: `,
 });
 
 const draftBlogContentFlow = ai.defineFlow(

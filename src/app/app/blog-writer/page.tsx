@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
@@ -339,30 +338,57 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review and Save</CardTitle>
-                <CardDescription>Review your generated blog post and save it.</CardDescription>
+                <CardDescription>Review your generated blog post and save it. You can make final edits to the content below.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold">Title:</h3>
-                  <p className="mt-1 p-3 bg-muted rounded-md">{blogTitle || 'Not set'}</p>
+                  <Label htmlFor="reviewBlogTitle" className="text-lg font-semibold">Title:</Label>
+                  <Input 
+                    id="reviewBlogTitle" 
+                    value={blogTitle} 
+                    onChange={(e) => setBlogTitle(e.target.value)}
+                    className="mt-1 p-3 bg-muted rounded-md text-lg font-semibold"
+                  />
                 </div>
                  <div>
-                  <h3 className="text-lg font-semibold">Outline:</h3>
-                  <p className="mt-1 p-3 bg-muted rounded-md whitespace-pre-line">{blogOutline || 'Not set'}</p>
+                  <Label htmlFor="reviewBlogOutline" className="text-lg font-semibold">Outline:</Label>
+                  <Textarea
+                    id="reviewBlogOutline"
+                    value={blogOutline}
+                    onChange={(e) => setBlogOutline(e.target.value)}
+                    rows={6}
+                    className="mt-1 p-3 bg-muted rounded-md"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Content:</h3>
-                  <div className="mt-1 p-3 bg-muted rounded-md max-h-96 overflow-y-auto whitespace-pre-line">
-                    {draftedContent || 'Not drafted yet'}
-                  </div>
+                  <Label htmlFor="reviewDraftedContent" className="text-lg font-semibold">Content:</Label>
+                  <Textarea
+                    id="reviewDraftedContent"
+                    value={draftedContent}
+                    onChange={(e) => setDraftedContent(e.target.value)}
+                    rows={20}
+                    className="mt-1 p-3 bg-muted rounded-md"
+                    placeholder="Your blog post content will appear here..."
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Meta Title:</h3>
-                  <p className="mt-1 p-3 bg-muted rounded-md">{metaTitle || 'Not generated'}</p>
+                  <Label htmlFor="reviewMetaTitle" className="text-lg font-semibold">Meta Title:</Label>
+                  <Input
+                    id="reviewMetaTitle"
+                    value={metaTitle}
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    className="mt-1 p-3 bg-muted rounded-md"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Meta Description:</h3>
-                  <p className="mt-1 p-3 bg-muted rounded-md">{metaDescription || 'Not generated'}</p>
+                  <Label htmlFor="reviewMetaDescription" className="text-lg font-semibold">Meta Description:</Label>
+                  <Textarea
+                    id="reviewMetaDescription"
+                    value={metaDescription}
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    rows={3}
+                    className="mt-1 p-3 bg-muted rounded-md"
+                  />
                 </div>
                 <Button onClick={handleSavePost} disabled={isLoading.save || !blogTitle || !draftedContent} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
                   {isLoading.save && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -379,7 +405,7 @@ const BlogWriterPage = () => {
           </Button>
           {currentStep < totalSteps ? (
             <Button onClick={nextStep} disabled={
-              (currentStep === 1 && (generatedIdeas.length === 0 || selectedIdeaIndex === null)) || // Ensure idea is selected if ideas were generated
+              (currentStep === 1 && (generatedIdeas.length === 0 || selectedIdeaIndex === null)) || 
               (currentStep === 2 && !draftedContent) ||
               (currentStep === 3 && (!metaTitle || !metaDescription))
             }>
