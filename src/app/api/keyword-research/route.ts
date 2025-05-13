@@ -14,6 +14,15 @@ const KeywordResearchRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   console.log('Received request to /api/keyword-research');
+
+  if (!process.env.GENAI_API_KEY) {
+    console.error('GENAI_API_KEY is not set. AI features will not work. This API endpoint requires it.');
+    return NextResponse.json(
+      { error: 'Server configuration error: GENAI_API_KEY is missing. AI functionalities are disabled for this endpoint.' },
+      { status: 503 } // Service Unavailable
+    );
+  }
+
   try {
     const body = await request.json();
     const validationResult = KeywordResearchRequestSchema.safeParse(body);
@@ -78,7 +87,8 @@ export async function POST(request: NextRequest) {
       questionKeywords,
       longTailKeywords,
       topicClusters,
-      error: "Note: Displaying sample data. Real-time SEO data API integration is pending.", 
+      // Keeping the note about sample data if the SEO client is still mock
+      error: process.env.MOCK_SEO_API === 'true' ? "Note: Displaying sample data. Real-time SEO data API integration is pending." : null,
     };
 
     return NextResponse.json(responseData, { status: 200 });
@@ -93,13 +103,16 @@ export async function POST(request: NextRequest) {
       errorDetails = error.stack;
     } else if (typeof error === 'string') {
       errorMessage = error;
-    } else if (typeof error === 'object' && error !== null) {
-      errorMessage = JSON.stringify(error);
+    } else {
+      try {
+        errorMessage = 'Error object: ' + JSON.stringify(error);
+      } catch (stringifyError) {
+        errorMessage = 'Complex error object occurred that could not be stringified.';
+      }
     }
     
-    // Log the full error structure for better debugging if it's not a standard Error instance
     if (!(error instanceof Error)) {
-        console.error('Full error object structure:', JSON.stringify(error, null, 2));
+        console.error('Full error object structure (attempting to log):', error);
     }
 
     return NextResponse.json({ error: errorMessage, details: errorDetails }, { status: 500 });
