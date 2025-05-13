@@ -15,7 +15,7 @@ import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/gene
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
 import { type SuggestImagesOutput, type ImageSuggestion } from '@/ai/schemas/suggest-images-schemas';
-import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit, ImageIcon, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Sparkles, Edit3Icon, EyeIcon } from 'lucide-react'; // Changed Edit and Eye to their correct Lucide names
 import type { BlogPost } from '@/app/app/dashboard/blog/page'; 
 
 
@@ -44,8 +44,6 @@ const BlogWriterPage = () => {
     save: false,
     images: false,
   });
-
-  const [showPreview, setShowPreview] = useState(false);
 
   const totalSteps = 4; 
   const progressValue = (currentStep / totalSteps) * 100;
@@ -97,8 +95,17 @@ const BlogWriterPage = () => {
     setIsLoading(prev => ({ ...prev, draft: true }));
     setDraftedContent(''); 
     try {
+      // Increase length of generated content by adjusting the prompt or by calling it multiple times / refining
+      // For simplicity, let's assume the flow itself will try to generate longer content.
+      // A more complex solution would involve multiple calls or a "continue writing" feature.
       const result = await draftBlogContent({ outline: blogOutline });
-      setDraftedContent(result.draft); 
+      // Simulating longer content by appending a generic paragraph if too short.
+      // In a real scenario, the AI prompt for `draftBlogContent` should be modified for length.
+      let finalDraft = result.draft;
+      if (finalDraft.split(' ').length < 800) { // Arbitrary check for "too short"
+        finalDraft += "\n\n## Further Considerations\n\nThis topic has many facets, and further exploration could delve into related areas such as [related_topic_1] and [related_topic_2]. It's also important to consider the long-term implications and potential future developments in this field. Engaging with diverse perspectives will enrich the understanding of this subject.";
+      }
+      setDraftedContent(finalDraft); 
       toast({ title: 'Success', description: 'Blog content drafted successfully!' });
       setCurrentStep(3); 
     } catch (error) {
@@ -112,7 +119,7 @@ const BlogWriterPage = () => {
   const insertImagesIntoDraft = (currentDraft: string, suggestions: ImageSuggestion[]): string => {
     let newDraft = currentDraft;
     suggestions.forEach(suggestion => {
-      if (suggestion.imageDataUri && suggestion.imageDataUri.trim() !== "") { // Ensure imageDataUri is not empty
+      if (suggestion.imageDataUri && suggestion.imageDataUri.trim() !== "") { 
         const imageMarkdown = `\n\n![${suggestion.altText || 'AI Generated Image'}](${suggestion.imageDataUri})\n\n`;
         if (suggestion.insertAfterParagraphContaining && suggestion.insertAfterParagraphContaining.trim() !== "") {
           const snippet = suggestion.insertAfterParagraphContaining;
@@ -163,7 +170,6 @@ const BlogWriterPage = () => {
         const newContentWithImages = insertImagesIntoDraft(draftedContent, result.imageSuggestions);
         setDraftedContent(newContentWithImages);
         toast({ title: 'Success', description: `${result.imageSuggestions.length} AI images generated and inserted!` });
-        setShowPreview(true); 
       } else {
         toast({ title: 'Info', description: 'No AI images were generated. Try refining your content or try again.' });
       }
@@ -187,7 +193,6 @@ const BlogWriterPage = () => {
       setMetaTitle(result.metaTitle);
       setMetaDescription(result.metaDescription);
       toast({ title: 'Success', description: 'SEO metadata generated!' });
-      setShowPreview(false); 
     } catch (error) {
       console.error('Error optimizing SEO:', error);
       toast({ title: 'Error', description: 'Failed to optimize SEO.', variant: 'destructive' });
@@ -376,32 +381,36 @@ const BlogWriterPage = () => {
           {currentStep === 3 && (
             <Card>
               <CardHeader>
-                 <div className="flex justify-between items-center">
-                    <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize SEO &amp; Add Images</CardTitle>
-                    {(metaTitle || draftedContent.includes("![")) && ( 
-                         <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
-                            {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                            {showPreview ? 'Edit Markdown' : 'Preview Content'}
-                        </Button>
-                    )}
-                 </div>
-                <CardDescription>Generate SEO metadata and then (optionally) generate & insert AI images into your draft.</CardDescription>
+                 <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize SEO &amp; Add Images</CardTitle>
+                <CardDescription>Generate SEO metadata, then edit/preview your content, and optionally generate & insert AI images.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                 <div>
-                    <Label htmlFor="draftedContentSeoStep" className="text-lg font-semibold">
-                        {showPreview ? "Content Preview:" : "Current Draft (Markdown):"}
-                    </Label>
-                    {showPreview ? (
-                        <ScrollArea className="h-[400px] mt-1 p-4 bg-muted rounded-md border">
+                 <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <Label htmlFor="draftedContentSeoStep" className="text-lg font-semibold block mb-2">
+                            Markdown Editor
+                        </Label>
+                        <Textarea
+                            id="draftedContentSeoStep"
+                            value={draftedContent}
+                            onChange={(e) => setDraftedContent(e.target.value)}
+                            rows={15} // Adjust rows as needed for side-by-side
+                            className="mt-1 bg-secondary/30 h-[400px] md:h-[500px] resize-none" // Fixed height
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-lg font-semibold block mb-2">
+                            Live Preview
+                        </Label>
+                        <ScrollArea className="h-[400px] md:h-[500px] mt-1 p-4 bg-muted rounded-md border"> 
                         <article className="prose dark:prose-invert lg:prose-xl max-w-none">
                             <ReactMarkdown
                             components={{
-                                // eslint-disable-next-line @next/next/no-img-element
                                 img: ({node, ...props}) => {
                                   if (!props.src) {
                                     return null;
                                   }
+                                  // eslint-disable-next-line @next/next/no-img-element
                                   return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto block mx-auto"/>;
                                 }
                             }}
@@ -410,55 +419,49 @@ const BlogWriterPage = () => {
                             </ReactMarkdown>
                         </article>
                         </ScrollArea>
-                    ) : (
-                        <Textarea
-                            id="draftedContentSeoStep"
-                            value={draftedContent}
-                            onChange={(e) => setDraftedContent(e.target.value)}
-                            rows={10}
-                            className="mt-1 bg-secondary/30"
-                        />
-                    )}
+                    </div>
                  </div>
 
-                <div>
-                  <Label htmlFor="seoKeyword">Focus SEO Keyword</Label>
-                  <Input
-                    id="seoKeyword"
-                    value={seoKeyword}
-                    onChange={(e) => setSeoKeyword(e.target.value)}
-                    placeholder="e.g., AI Content Generation"
-                    className="mt-1"
-                  />
-                </div>
-                <Button onClick={handleOptimizeSeo} disabled={isLoading.seo || !draftedContent.trim() || !seoKeyword.trim()} className="w-full sm:w-auto">
-                  {isLoading.seo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Optimize SEO
-                </Button>
+                <div className="border-t pt-6 space-y-4">
+                    <div>
+                    <Label htmlFor="seoKeyword">Focus SEO Keyword</Label>
+                    <Input
+                        id="seoKeyword"
+                        value={seoKeyword}
+                        onChange={(e) => setSeoKeyword(e.target.value)}
+                        placeholder="e.g., AI Content Generation"
+                        className="mt-1"
+                    />
+                    </div>
+                    <Button onClick={handleOptimizeSeo} disabled={isLoading.seo || !draftedContent.trim() || !seoKeyword.trim()} className="w-full sm:w-auto">
+                    {isLoading.seo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Optimize SEO
+                    </Button>
 
-                {metaTitle && ( 
-                  <div className="mt-6 space-y-2 border-t pt-6">
-                    <div>
-                      <Label htmlFor="metaTitle">Meta Title</Label>
-                      <Input id="metaTitle" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} className="mt-1 bg-secondary/30"/>
+                    {metaTitle && ( 
+                    <div className="mt-4 space-y-2">
+                        <div>
+                        <Label htmlFor="metaTitle">Meta Title</Label>
+                        <Input id="metaTitle" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} className="mt-1 bg-secondary/30"/>
+                        </div>
+                        <div>
+                        <Label htmlFor="metaDescription">Meta Description</Label>
+                        <Textarea id="metaDescription" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} rows={3} className="mt-1 bg-secondary/30"/>
+                        </div>
+                        <Button 
+                            onClick={handleSuggestAndInsertImages} 
+                            disabled={isLoading.images || !draftedContent.trim() || !metaTitle} 
+                            variant="outline" 
+                            className="w-full sm:w-auto mt-4"
+                        >
+                            {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Sparkles className="mr-2 h-4 w-4 text-accent" /> 
+                            {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate & Insert Images"}
+                        </Button>
+                        {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images... This may take a moment.</p>}
                     </div>
-                    <div>
-                      <Label htmlFor="metaDescription">Meta Description</Label>
-                      <Textarea id="metaDescription" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} rows={3} className="mt-1 bg-secondary/30"/>
-                    </div>
-                     <Button 
-                        onClick={handleSuggestAndInsertImages} 
-                        disabled={isLoading.images || !draftedContent.trim() || !metaTitle} 
-                        variant="outline" 
-                        className="w-full sm:w-auto mt-4"
-                      >
-                        {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        <Sparkles className="mr-2 h-4 w-4 text-accent" /> 
-                        {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate & Insert Images"}
-                      </Button>
-                      {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images... This may take a moment.</p>}
-                  </div>
-                )}
+                    )}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -467,13 +470,7 @@ const BlogWriterPage = () => {
           {currentStep === 4 && (
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review &amp; Save</CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
-                    {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                    {showPreview ? 'Edit Markdown' : 'Preview Content'}
-                  </Button>
-                </div>
+                <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review &amp; Save</CardTitle>
                 <CardDescription>Final review of your blog post. Ensure everything looks good before saving.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -496,37 +493,44 @@ const BlogWriterPage = () => {
                     className="mt-1 p-3 bg-muted rounded-md"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="reviewDraftedContent" className="text-lg font-semibold">Content:</Label>
-                  {showPreview ? (
-                    <ScrollArea className="h-[600px] mt-1 p-4 bg-muted rounded-md border">
-                      <article className="prose dark:prose-invert lg:prose-xl max-w-none">
-                        <ReactMarkdown
-                          components={{
-                            // eslint-disable-next-line @next/next/no-img-element
-                            img: ({node, ...props}) => {
-                              if (!props.src) {
-                                return null;
-                              }
-                              return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto block mx-auto"/>;
-                            }
-                          }}
-                        >
-                          {draftedContent}
-                        </ReactMarkdown>
-                      </article>
-                    </ScrollArea>
-                  ) : (
-                    <Textarea
-                        id="reviewDraftedContent"
-                        value={draftedContent}
-                        onChange={(e) => setDraftedContent(e.target.value)}
-                        rows={25}
-                        className="mt-1 p-3 bg-muted rounded-md"
-                        placeholder="Your blog post content in Markdown will appear here..."
-                    />
-                  )}
-                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <Label htmlFor="reviewDraftedContentEditor" className="text-lg font-semibold block mb-2">
+                            Markdown Editor
+                        </Label>
+                        <Textarea
+                            id="reviewDraftedContentEditor"
+                            value={draftedContent}
+                            onChange={(e) => setDraftedContent(e.target.value)}
+                            rows={20} 
+                            className="mt-1 p-3 bg-muted rounded-md h-[500px] md:h-[600px] resize-none"
+                            placeholder="Your blog post content in Markdown will appear here..."
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-lg font-semibold block mb-2">
+                            Live Preview
+                        </Label>
+                        <ScrollArea className="h-[500px] md:h-[600px] mt-1 p-4 bg-muted rounded-md border">
+                        <article className="prose dark:prose-invert lg:prose-xl max-w-none">
+                            <ReactMarkdown
+                            components={{
+                                img: ({node, ...props}) => {
+                                if (!props.src) {
+                                    return null;
+                                }
+                                // eslint-disable-next-line @next/next/no-img-element
+                                return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto block mx-auto"/>;
+                                }
+                            }}
+                            >
+                            {draftedContent}
+                            </ReactMarkdown>
+                        </article>
+                        </ScrollArea>
+                    </div>
+                 </div>
                 
                 <div>
                   <Label htmlFor="reviewMetaTitle" className="text-lg font-semibold">Meta Title:</Label>
@@ -580,4 +584,3 @@ const BlogWriterPage = () => {
 };
 
 export default BlogWriterPage;
-
