@@ -3,6 +3,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/generate-blog-ideas';
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
-import { suggestImages, type SuggestImagesOutput, type ImageSuggestion } from '@/ai/flows/suggest-images-flow';
-import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { type SuggestImagesOutput, type ImageSuggestion } from '@/ai/schemas/suggest-images-schemas'; // Updated path
+import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit, Image as ImageIconLucide, Sparkles } from 'lucide-react';
 import type { BlogPost } from '@/app/app/dashboard/blog/page'; 
 
 
@@ -49,7 +50,7 @@ const BlogWriterPage = () => {
 
   const [showPreview, setShowPreview] = useState(false);
 
-  const totalSteps = 4; // Can be adjusted if image suggestions becomes a full step
+  const totalSteps = 4; 
   const progressValue = (currentStep / totalSteps) * 100;
 
   useEffect(() => {
@@ -97,7 +98,7 @@ const BlogWriterPage = () => {
       return;
     }
     setIsLoading(prev => ({ ...prev, draft: true }));
-    setImageSuggestions([]); // Clear previous image suggestions
+    setImageSuggestions([]); 
     try {
       const result = await draftBlogContent({ outline: blogOutline });
       setDraftedContent(result.draft);
@@ -131,13 +132,13 @@ const BlogWriterPage = () => {
       const result: SuggestImagesOutput = await response.json();
       setImageSuggestions(result.imageSuggestions || []);
       if (result.imageSuggestions && result.imageSuggestions.length > 0) {
-        toast({ title: 'Success', description: `${result.imageSuggestions.length} image suggestions generated!` });
+        toast({ title: 'Success', description: `${result.imageSuggestions.length} AI images generated!` });
       } else {
-        toast({ title: 'Info', description: 'No specific image suggestions were generated. Try refining your content.' });
+        toast({ title: 'Info', description: 'No AI images were generated. Try refining your content or try again.' });
       }
     } catch (error: any) {
       console.error('Error suggesting images:', error);
-      toast({ title: 'Error', description: error.message || 'Failed to suggest images.', variant: 'destructive' });
+      toast({ title: 'Error', description: error.message || 'Failed to generate images.', variant: 'destructive' });
     } finally {
       setIsLoading(prev => ({ ...prev, images: false }));
     }
@@ -156,7 +157,7 @@ const BlogWriterPage = () => {
       setMetaDescription(result.metaDescription);
       toast({ title: 'Success', description: 'SEO metadata generated!' });
       setCurrentStep(4);
-      setShowPreview(true); // Default to preview mode in step 4
+      setShowPreview(true); 
     } catch (error) {
       console.error('Error optimizing SEO:', error);
       toast({ title: 'Error', description: 'Failed to optimize SEO.', variant: 'destructive' });
@@ -174,6 +175,7 @@ const BlogWriterPage = () => {
       metaTitle: metaTitle,
       metaDescription: metaDescription,
       outline: blogOutline,
+      // TODO: Potentially save image data URIs or references if they are to be part of the saved post
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -213,14 +215,6 @@ const BlogWriterPage = () => {
       toast({ title: 'Error', description: 'Please select one of the generated ideas.', variant: 'destructive' });
       return;
     }
-    if (currentStep === 2 && !draftedContent) {
-      // Allow proceeding from step 2 even without drafted content IF they want to go to image suggestions or SEO later.
-      // Forcing draft for SEO is better, but image suggestions can be standalone.
-      // The "Draft Content" button will transition to step 3 (SEO).
-      // The "Optimize SEO" button will transition to step 4 (Review).
-      // This logic might need refinement depending on if Image Suggestion is a distinct step.
-      // For now, nextStep just moves forward. Buttons like "Draft Content" or "Optimize SEO" also move steps.
-    }
     if (currentStep === 3 && (!metaTitle || !metaDescription)) {
        toast({ title: 'Error', description: 'Please optimize SEO before proceeding.', variant: 'destructive' });
       return;
@@ -231,6 +225,33 @@ const BlogWriterPage = () => {
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(s => s - 1);
   };
+
+  const renderImageSuggestions = (suggestions: ImageSuggestion[]) => (
+    <div className="mt-4 space-y-4">
+      <h4 className="text-md font-semibold">AI-Generated Images:</h4>
+      <ScrollArea className="h-[400px] pr-3">
+      {suggestions.map((suggestion, idx) => (
+        <Card key={idx} className="mb-3 bg-muted/50">
+          <CardHeader className="pb-2 pt-4">
+            {suggestion.sectionContext && <p className="text-xs text-muted-foreground mb-1">For: {suggestion.sectionContext}</p>}
+            <CardTitle className="text-sm font-medium">{suggestion.imageConcept}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs pb-3 space-y-2">
+            <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+              <Image 
+                src={suggestion.imageDataUri} 
+                alt={suggestion.imageConcept} 
+                layout="fill"
+                objectFit="contain" // Or "cover", depending on desired outcome
+              />
+            </div>
+            {suggestion.placementHint && <p><strong>Placement:</strong> {suggestion.placementHint}</p>}
+          </CardContent>
+        </Card>
+      ))}
+      </ScrollArea>
+    </div>
+  );
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -298,7 +319,7 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><DraftingCompass className="text-accent"/> Step 2: Draft Your Blog Post</CardTitle>
-                <CardDescription>Review and refine the AI-generated outline, then draft the content. You can also get image suggestions for your draft.</CardDescription>
+                <CardDescription>Review and refine the outline, then draft the content. You can also get AI-generated images for your draft.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -340,38 +361,10 @@ const BlogWriterPage = () => {
                     </div>
                     <Button onClick={handleSuggestImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" className="w-full sm:w-auto">
                       {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      <ImageIcon className="mr-2 h-4 w-4" /> Suggest Images
+                      <ImageIconLucide className="mr-2 h-4 w-4" /> Generate Images
                     </Button>
-                    {isLoading.images && <p className="text-sm text-muted-foreground">Generating image suggestions...</p>}
-                    {imageSuggestions.length > 0 && (
-                      <div className="mt-4 space-y-4">
-                        <h4 className="text-md font-semibold">Image Suggestions:</h4>
-                        <ScrollArea className="h-[300px] pr-3">
-                        {imageSuggestions.map((suggestion, idx) => (
-                          <Card key={idx} className="mb-3 bg-muted/50">
-                            <CardHeader className="pb-2 pt-4">
-                              {suggestion.sectionContext && <p className="text-xs text-muted-foreground mb-1">For: {suggestion.sectionContext}</p>}
-                              <CardTitle className="text-sm font-medium">{suggestion.imageConcept}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-xs pb-3">
-                              <p className="mb-1"><strong>Search Keywords:</strong> {suggestion.searchKeywords.map((kw, kIdx) => (
-                                <a 
-                                  key={kIdx}
-                                  href={`https://unsplash.com/s/photos/${encodeURIComponent(kw)}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-block bg-accent text-accent-foreground px-1.5 py-0.5 rounded-sm mr-1 mb-1 hover:bg-accent/80 transition-colors"
-                                >
-                                  {kw}
-                                </a>
-                              ))}</p>
-                              {suggestion.placementHint && <p><strong>Placement:</strong> {suggestion.placementHint}</p>}
-                            </CardContent>
-                          </Card>
-                        ))}
-                        </ScrollArea>
-                      </div>
-                    )}
+                    {isLoading.images && <p className="text-sm text-muted-foreground">Generating AI images...</p>}
+                    {imageSuggestions.length > 0 && renderImageSuggestions(imageSuggestions)}
                   </div>
                 )}
               </CardContent>
@@ -383,7 +376,7 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize for SEO</CardTitle>
-                <CardDescription>Generate SEO-friendly meta title and description for your post.</CardDescription>
+                <CardDescription>Generate SEO-friendly meta title and description. You can also generate images if you haven't already.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -415,39 +408,11 @@ const BlogWriterPage = () => {
                 {draftedContent && imageSuggestions.length === 0 && !isLoading.images && (
                    <Button onClick={handleSuggestImages} disabled={isLoading.images} variant="outline" className="w-full sm:w-auto mt-4">
                       {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                       <ImageIcon className="mr-2 h-4 w-4" /> Get Image Suggestions
+                       <ImageIconLucide className="mr-2 h-4 w-4" /> Generate Images
                     </Button>
                 )}
-                 {isLoading.images && <p className="text-sm text-muted-foreground mt-2">Generating image suggestions...</p>}
-                 {imageSuggestions.length > 0 && (
-                      <div className="mt-4 space-y-4">
-                        <h4 className="text-md font-semibold">Image Suggestions:</h4>
-                         <ScrollArea className="h-[300px] pr-3">
-                        {imageSuggestions.map((suggestion, idx) => (
-                          <Card key={idx} className="mb-3 bg-muted/50">
-                            <CardHeader className="pb-2 pt-4">
-                               {suggestion.sectionContext && <p className="text-xs text-muted-foreground mb-1">For: {suggestion.sectionContext}</p>}
-                              <CardTitle className="text-sm font-medium">{suggestion.imageConcept}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-xs pb-3">
-                              <p className="mb-1"><strong>Search Keywords:</strong> {suggestion.searchKeywords.map((kw, kIdx) => (
-                                <a 
-                                  key={kIdx}
-                                  href={`https://unsplash.com/s/photos/${encodeURIComponent(kw)}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-block bg-accent text-accent-foreground px-1.5 py-0.5 rounded-sm mr-1 mb-1 hover:bg-accent/80 transition-colors"
-                                >
-                                  {kw}
-                                </a>
-                              ))}</p>
-                              {suggestion.placementHint && <p><strong>Placement:</strong> {suggestion.placementHint}</p>}
-                            </CardContent>
-                          </Card>
-                        ))}
-                        </ScrollArea>
-                      </div>
-                    )}
+                 {isLoading.images && <p className="text-sm text-muted-foreground mt-2">Generating AI images...</p>}
+                 {imageSuggestions.length > 0 && renderImageSuggestions(imageSuggestions)}
               </CardContent>
             </Card>
           )}
@@ -506,37 +471,14 @@ const BlogWriterPage = () => {
                 </div>
                  {imageSuggestions.length > 0 && (
                     <div className="mt-4 space-y-4">
-                        <h4 className="text-md font-semibold flex items-center gap-2"><ImageIcon className="text-accent" /> Image Suggestions:</h4>
-                         <ScrollArea className="h-[300px] pr-3">
-                        {imageSuggestions.map((suggestion, idx) => (
-                          <Card key={idx} className="mb-3 bg-muted/50 border-border">
-                            <CardHeader className="pb-2 pt-4">
-                               {suggestion.sectionContext && <p className="text-xs text-muted-foreground mb-1">For: {suggestion.sectionContext}</p>}
-                              <CardTitle className="text-sm font-medium">{suggestion.imageConcept}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-xs pb-3">
-                              <p className="mb-1"><strong>Search Keywords:</strong> {suggestion.searchKeywords.map((kw, kIdx) => (
-                                <a 
-                                  key={kIdx}
-                                  href={`https://unsplash.com/s/photos/${encodeURIComponent(kw.replace(/\s+/g, '-'))}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-block bg-accent text-accent-foreground px-1.5 py-0.5 rounded-sm mr-1 mb-1 hover:bg-accent/80 transition-colors"
-                                >
-                                  {kw}
-                                </a>
-                              ))}</p>
-                              {suggestion.placementHint && <p><strong>Placement:</strong> {suggestion.placementHint}</p>}
-                            </CardContent>
-                          </Card>
-                        ))}
-                        </ScrollArea>
+                        <h4 className="text-md font-semibold flex items-center gap-2"><ImageIconLucide className="text-accent" /> AI-Generated Images:</h4>
+                        {renderImageSuggestions(imageSuggestions)}
                     </div>
                 )}
                 {draftedContent && imageSuggestions.length === 0 && !isLoading.images && (
                    <Button onClick={handleSuggestImages} disabled={isLoading.images} variant="outline" size="sm" className="mt-2">
                       {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                       <Sparkles className="mr-2 h-4 w-4 text-accent" /> Get Fresh Image Ideas
+                       <Sparkles className="mr-2 h-4 w-4 text-accent" /> Get Fresh AI Images
                     </Button>
                 )}
                 <div>
@@ -574,7 +516,7 @@ const BlogWriterPage = () => {
           {currentStep < totalSteps ? (
             <Button onClick={nextStep} disabled={
               (currentStep === 1 && (generatedIdeas.length === 0 || selectedIdeaIndex === null)) || 
-              (currentStep === 2 && !draftedContent && !metaTitle && !metaDescription) || // Allow next from step 2 if content is drafted, OR if SEO is done (meaning draft must have happened)
+              (currentStep === 2 && !draftedContent && !metaTitle && !metaDescription) || 
               (currentStep === 3 && (!metaTitle || !metaDescription))
             }>
               Next <ChevronRight className="ml-2 h-4 w-4" />

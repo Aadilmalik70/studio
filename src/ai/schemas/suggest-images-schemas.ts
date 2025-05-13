@@ -14,8 +14,8 @@ export type SuggestImagesInput = z.infer<typeof SuggestImagesInputSchema>;
 
 export const ImageSuggestionSchema = z.object({
   sectionContext: z.string().optional().describe('Which part of the blog this image is best for (e.g., "Introduction", "Section: AI-Driven Content Optimization").'),
-  imageConcept: z.string().describe('A concise description of the visual idea (e.g., "A diverse team collaborating around a computer showing data charts," "A single lightbulb glowing brightly against a dark background representing an idea").'),
-  searchKeywords: z.array(z.string()).describe('An array of 3-5 keywords to find such an image on a stock photo site (e.g., ["team collaboration data analytics", "innovation lightbulb idea dark"]).'),
+  imageConcept: z.string().describe('A concise description of the visual idea that was used to generate the image. This also serves as the alt text for the image.'),
+  imageDataUri: z.string().url().describe('The AI-generated image as a base64 data URI.'),
   placementHint: z.string().optional().describe('A brief suggestion on where this image could be placed in relation to the text (e.g., "As a header image", "After the first H2 heading," "Alongside the paragraph discussing benefits").'),
 });
 export type ImageSuggestion = z.infer<typeof ImageSuggestionSchema>;
