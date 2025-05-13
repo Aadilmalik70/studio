@@ -9,18 +9,14 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { 
+    AnalyzeKeywordIntentInputSchema, 
+    type AnalyzeKeywordIntentInput, 
+    AnalyzeKeywordIntentOutputSchema,
+    type AnalyzeKeywordIntentOutput 
+} from '@/ai/schemas/analyze-keyword-intent-schemas';
 
-export const AnalyzeKeywordIntentInputSchema = z.object({
-  keyword: z.string().describe('The keyword to analyze for search intent.'),
-});
-export type AnalyzeKeywordIntentInput = z.infer<typeof AnalyzeKeywordIntentInputSchema>;
-
-export const AnalyzeKeywordIntentOutputSchema = z.object({
-  intent: z.enum(["Informational", "Navigational", "Commercial Investigation", "Transactional", "Unknown"])
-            .describe('The classified search intent of the keyword.'),
-});
-export type AnalyzeKeywordIntentOutput = z.infer<typeof AnalyzeKeywordIntentOutputSchema>;
+export type { AnalyzeKeywordIntentInput, AnalyzeKeywordIntentOutput };
 
 export async function analyzeKeywordIntent(input: AnalyzeKeywordIntentInput): Promise<AnalyzeKeywordIntentOutput> {
   return analyzeKeywordIntentFlow(input);

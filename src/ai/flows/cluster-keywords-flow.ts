@@ -9,20 +9,14 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { 
+    ClusterKeywordsInputSchema,
+    type ClusterKeywordsInput,
+    ClusterKeywordsOutputSchema,
+    type ClusterKeywordsOutput
+} from '@/ai/schemas/cluster-keywords-schemas';
 
-export const ClusterKeywordsInputSchema = z.object({
-  keywordsList: z.array(z.string()).describe('A list of keywords to cluster.'),
-});
-export type ClusterKeywordsInput = z.infer<typeof ClusterKeywordsInputSchema>;
-
-export const ClusterKeywordsOutputSchema = z.object({
-  clusters: z.array(z.object({
-    clusterName: z.string().describe('A concise name for the topic cluster.'),
-    keywords: z.array(z.string()).describe('Keywords belonging to this cluster.'),
-  })).describe('An array of topic clusters, each with a name and associated keywords.'),
-});
-export type ClusterKeywordsOutput = z.infer<typeof ClusterKeywordsOutputSchema>;
+export type { ClusterKeywordsInput, ClusterKeywordsOutput };
 
 export async function clusterKeywords(input: ClusterKeywordsInput): Promise<ClusterKeywordsOutput> {
   return clusterKeywordsFlow(input);

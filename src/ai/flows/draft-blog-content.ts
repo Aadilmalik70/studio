@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -9,18 +10,14 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { 
+    DraftBlogContentInputSchema,
+    type DraftBlogContentInput,
+    DraftBlogContentOutputSchema,
+    type DraftBlogContentOutput
+} from '@/ai/schemas/draft-blog-content-schemas';
 
-const DraftBlogContentInputSchema = z.object({
-  outline: z.string().describe('The outline of the blog post to generate.'),
-});
-export type DraftBlogContentInput = z.infer<typeof DraftBlogContentInputSchema>;
-
-const DraftBlogContentOutputSchema = z.object({
-  draft: z.string().describe('The generated draft of the blog post.'),
-  progress: z.string().describe('A short summary of what has been generated.'),
-});
-export type DraftBlogContentOutput = z.infer<typeof DraftBlogContentOutputSchema>;
+export type { DraftBlogContentInput, DraftBlogContentOutput };
 
 export async function draftBlogContent(input: DraftBlogContentInput): Promise<DraftBlogContentOutput> {
   return draftBlogContentFlow(input);
