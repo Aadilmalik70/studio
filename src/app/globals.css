@@ -119,9 +119,14 @@
 }
 
 /* Styles for react-markdown rendered content (Tailwind Typography) */
-.prose {
-  /* Add any global prose overrides here if needed, mostly handled by CSS vars */
-}
-.prose :where(img):not(:where([class~="not-prose"] *)) {
-  @apply rounded-md shadow-md; /* Example: style images within markdown */
+@layer components {
+  .prose :where(img):not(:where([class~="not-prose"] *)) {
+    @apply rounded-lg shadow-xl my-8 mx-auto block; /* Increased vertical margin, added prominent shadow, centered */
+    max-width: 650px; /* Set a max-width for larger images */
+    height: auto; /* Maintain aspect ratio */
+  }
+
+  .dark .prose :where(img):not(:where([class~="not-prose"] *)) {
+    @apply shadow-primary/20; /* Example: softer shadow for dark mode, adjust as needed */
+  }
 }

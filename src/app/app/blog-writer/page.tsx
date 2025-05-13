@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
@@ -32,15 +31,11 @@ const BlogWriterPage = () => {
   
   const [blogTitle, setBlogTitle] = useState('');
   const [blogOutline, setBlogOutline] = useState('');
-  const [draftedContent, setDraftedContent] = useState(''); // This will now hold content with image markdown
+  const [draftedContent, setDraftedContent] = useState(''); 
   
   const [seoKeyword, setSeoKeyword] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
-
-  // No longer need separate imageSuggestions state for display, as they will be inline.
-  // We might need a temporary state if we want to allow users to pick *which* suggested images to insert.
-  // For now, we'll auto-insert all generated images.
 
   const [isLoading, setIsLoading] = useState({
     ideas: false,
@@ -100,13 +95,12 @@ const BlogWriterPage = () => {
       return;
     }
     setIsLoading(prev => ({ ...prev, draft: true }));
-    setDraftedContent(''); // Clear previous draft
+    setDraftedContent(''); 
     try {
-      // Make the draft longer, at least 1000 words as requested
       const result = await draftBlogContent({ outline: blogOutline });
-      setDraftedContent(result.draft); // Set initial draft without images
+      setDraftedContent(result.draft); 
       toast({ title: 'Success', description: 'Blog content drafted successfully!' });
-      setCurrentStep(3); // Move to SEO, images can be generated there or in review
+      setCurrentStep(3); 
     } catch (error) {
       console.error('Error drafting blog content:', error);
       toast({ title: 'Error', description: 'Failed to draft blog content.', variant: 'destructive' });
@@ -120,26 +114,21 @@ const BlogWriterPage = () => {
     suggestions.forEach(suggestion => {
       if (suggestion.insertAfterParagraphContaining && suggestion.insertAfterParagraphContaining.trim() !== "") {
         const snippet = suggestion.insertAfterParagraphContaining;
-        // Find the paragraph. This is a simple search and might need refinement for robustness.
-        // It looks for the snippet and finds the end of that paragraph (next double newline).
         const snippetIndex = newDraft.indexOf(snippet);
         if (snippetIndex !== -1) {
           const paragraphEndIndex = newDraft.indexOf("\n\n", snippetIndex + snippet.length);
-          const insertImageAt = paragraphEndIndex !== -1 ? paragraphEndIndex : newDraft.length; // if no double newline, append
+          const insertImageAt = paragraphEndIndex !== -1 ? paragraphEndIndex : newDraft.length; 
           
           const imageMarkdown = `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
           
           newDraft = newDraft.substring(0, insertImageAt) + imageMarkdown + newDraft.substring(insertImageAt);
         } else {
-            console.warn(`Snippet "${snippet}" not found in draft. Image for "${suggestion.imageConcept}" not inserted inline.`);
-            // Fallback: append image if snippet not found (or handle differently)
-            // newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
+            console.warn(`Snippet "${snippet}" not found in draft. Image for "${suggestion.imageConcept}" appended as fallback.`);
+            newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
         }
       } else {
-         // If no specific placement, prepend or append, or handle as a general image.
-         // For now, let's prepend to make it obvious, can be refined.
-         // newDraft = `![${suggestion.altText}](${suggestion.imageDataUri})\n\n` + newDraft;
-         console.warn(`No placement snippet for image "${suggestion.imageConcept}". Not inserting inline automatically.`);
+         console.warn(`No placement snippet for image "${suggestion.imageConcept}". Appending image as fallback.`);
+         newDraft += `\n\n![${suggestion.altText}](${suggestion.imageDataUri})\n\n`;
       }
     });
     return newDraft;
@@ -165,8 +154,9 @@ const BlogWriterPage = () => {
       
       if (result.imageSuggestions && result.imageSuggestions.length > 0) {
         const newContentWithImages = insertImagesIntoDraft(draftedContent, result.imageSuggestions);
-        setDraftedContent(newContentWithImages); // Update the main draft state
+        setDraftedContent(newContentWithImages);
         toast({ title: 'Success', description: `${result.imageSuggestions.length} AI images generated and inserted!` });
+        setShowPreview(true); // Automatically switch to preview after inserting images
       } else {
         toast({ title: 'Info', description: 'No AI images were generated. Try refining your content or try again.' });
       }
@@ -180,16 +170,12 @@ const BlogWriterPage = () => {
 
 
   const handleOptimizeSeo = async () => {
-    // Use draftedContent which might now include image markdown
     if (!draftedContent.trim() || !seoKeyword.trim()) {
       toast({ title: 'Error', description: 'Draft content and SEO keyword are required.', variant: 'destructive' });
       return;
     }
     setIsLoading(prev => ({ ...prev, seo: true }));
     try {
-      // For SEO analysis, we might want to send content without image data URIs if they are very long.
-      // However, for simplicity, we'll send the current draftedContent.
-      // A more advanced approach could strip or summarize image tags before sending for SEO analysis.
       const result = await optimizeSeo({ blogPostContent: draftedContent, keyword: seoKeyword });
       setMetaTitle(result.metaTitle);
       setMetaDescription(result.metaDescription);
@@ -209,7 +195,7 @@ const BlogWriterPage = () => {
     const newPost: BlogPost = {
       id: new Date().toISOString(),
       title: blogTitle,
-      content: draftedContent, // This now contains the full markdown, including images
+      content: draftedContent, 
       metaTitle: metaTitle,
       metaDescription: metaDescription,
       outline: blogOutline,
@@ -250,6 +236,10 @@ const BlogWriterPage = () => {
     }
     if (currentStep === 1 && generatedIdeas.length > 0 && selectedIdeaIndex === null) {
       toast({ title: 'Error', description: 'Please select one of the generated ideas.', variant: 'destructive' });
+      return;
+    }
+    if (currentStep === 2 && !draftedContent) {
+       toast({ title: 'Error', description: 'Please draft content before proceeding.', variant: 'destructive' });
       return;
     }
     if (currentStep === 3 && (!metaTitle || !metaDescription)) {
@@ -330,7 +320,7 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><DraftingCompass className="text-accent"/> Step 2: Draft Your Blog Post</CardTitle>
-                <CardDescription>Review and refine the outline, then draft the content. You can generate and insert AI images after drafting.</CardDescription>
+                <CardDescription>Review and refine the outline, then draft the content. AI Image generation is available in Step 4.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -355,7 +345,7 @@ const BlogWriterPage = () => {
                 </div>
                 <Button onClick={handleDraftContent} disabled={isLoading.draft || !blogOutline.trim()} className="w-full sm:w-auto">
                   {isLoading.draft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Draft Content & Proceed to SEO
+                  Draft Content &amp; Proceed to SEO
                 </Button>
                 
                 {draftedContent && (
@@ -370,11 +360,6 @@ const BlogWriterPage = () => {
                         className="mt-1 bg-secondary/30"
                       />
                     </div>
-                     <Button onClick={handleSuggestAndInsertImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" className="w-full sm:w-auto">
-                      {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      <ImageIcon className="mr-2 h-4 w-4" /> Generate & Insert Images
-                    </Button>
-                    {isLoading.images && <p className="text-sm text-muted-foreground">Generating and inserting AI images...</p>}
                   </div>
                 )}
               </CardContent>
@@ -386,7 +371,7 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><SearchCheck className="text-accent"/> Step 3: Optimize for SEO</CardTitle>
-                <CardDescription>Generate SEO-friendly meta title and description. You can also generate and insert images into your draft if you haven't already.</CardDescription>
+                <CardDescription>Generate SEO-friendly meta title and description. AI Image generation is available in Step 4.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                  {draftedContent && (
@@ -399,11 +384,6 @@ const BlogWriterPage = () => {
                             rows={10}
                             className="mt-1 bg-secondary/30"
                         />
-                        <Button onClick={handleSuggestAndInsertImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" size="sm" className="mt-2">
-                            {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            <ImageIcon className="mr-2 h-4 w-4" /> {draftedContent.includes("![") ? "Regenerate/Add Images" : "Generate & Insert Images"}
-                        </Button>
-                        {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images...</p>}
                     </div>
                 )}
                 <div>
@@ -418,7 +398,7 @@ const BlogWriterPage = () => {
                 </div>
                 <Button onClick={handleOptimizeSeo} disabled={isLoading.seo || !draftedContent.trim() || !seoKeyword.trim()} className="w-full sm:w-auto">
                   {isLoading.seo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Optimize SEO & Proceed to Review
+                  Optimize SEO &amp; Proceed to Review
                 </Button>
                 {metaTitle && (
                   <div className="mt-6 space-y-2">
@@ -441,13 +421,13 @@ const BlogWriterPage = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review and Save</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review, Add Images &amp; Save</CardTitle>
                   <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
                     {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                     {showPreview ? 'Edit Markdown' : 'Preview Content'}
                   </Button>
                 </div>
-                <CardDescription>Review your generated blog post and save it. {showPreview ? "Previewing content with images." : "You can make final edits to the Markdown content below, including image tags."}</CardDescription>
+                <CardDescription>Review your blog post. In "Edit Markdown" mode, you can generate and insert AI images. Then, save your post.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
@@ -477,7 +457,7 @@ const BlogWriterPage = () => {
                         <ReactMarkdown
                           components={{
                             // eslint-disable-next-line @next/next/no-img-element
-                            img: ({node, ...props}) => <img {...props} style={{maxWidth: '100%', height: 'auto', borderRadius: '0.5rem', margin: '1rem 0'}} alt={props.alt} />
+                            img: ({node, ...props}) => <img {...props} alt={props.alt || 'Blog image'} />
                           }}
                         >
                           {draftedContent}
@@ -485,23 +465,31 @@ const BlogWriterPage = () => {
                       </article>
                     </ScrollArea>
                   ) : (
-                    <Textarea
-                      id="reviewDraftedContent"
-                      value={draftedContent}
-                      onChange={(e) => setDraftedContent(e.target.value)}
-                      rows={25}
-                      className="mt-1 p-3 bg-muted rounded-md"
-                      placeholder="Your blog post content in Markdown will appear here..."
-                    />
+                    <>
+                      <Textarea
+                        id="reviewDraftedContent"
+                        value={draftedContent}
+                        onChange={(e) => setDraftedContent(e.target.value)}
+                        rows={25}
+                        className="mt-1 p-3 bg-muted rounded-md"
+                        placeholder="Your blog post content in Markdown will appear here..."
+                      />
+                      <Button 
+                        onClick={handleSuggestAndInsertImages} 
+                        disabled={isLoading.images || !draftedContent.trim()} 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                      >
+                        {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Sparkles className="mr-2 h-4 w-4 text-accent" /> 
+                        {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate &amp; Insert Images"}
+                      </Button>
+                      {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images... This may take a moment.</p>}
+                    </>
                   )}
                 </div>
-                {!showPreview && (
-                     <Button onClick={handleSuggestAndInsertImages} disabled={isLoading.images || !draftedContent.trim()} variant="outline" size="sm" className="mt-2">
-                      {isLoading.images && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                       <Sparkles className="mr-2 h-4 w-4 text-accent" /> {draftedContent.includes("![") ? "Regenerate/Add More Images" : "Generate & Insert Images"}
-                    </Button>
-                )}
-                 {isLoading.images && <p className="text-xs text-muted-foreground mt-1">Generating and inserting AI images...</p>}
+                
                 <div>
                   <Label htmlFor="reviewMetaTitle" className="text-lg font-semibold">Meta Title:</Label>
                   <Input
@@ -537,14 +525,14 @@ const BlogWriterPage = () => {
           {currentStep < totalSteps ? (
             <Button onClick={nextStep} disabled={
               (currentStep === 1 && (generatedIdeas.length === 0 || selectedIdeaIndex === null)) || 
-              (currentStep === 2 && !draftedContent) || // Simpler check for step 2
+              (currentStep === 2 && !draftedContent) || 
               (currentStep === 3 && (!metaTitle || !metaDescription))
             }>
               Next <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
              <Button onClick={() => router.push('/app/dashboard/blog')} variant="secondary">
-              Finish & Go to My Posts
+              Finish &amp; Go to My Posts
             </Button>
           )}
         </CardFooter>
