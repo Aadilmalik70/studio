@@ -12,7 +12,7 @@ export type SuggestImagesInput = z.infer<typeof SuggestImagesInputSchema>;
 export const ImageSuggestionSchema = z.object({
   imageConcept: z.string().describe('A concise and descriptive visual idea that was used to generate the image. This is the prompt used for generation.'),
   altText: z.string().describe('Descriptive alt text for the generated image, suitable for SEO and accessibility.'),
-  imageDataUri: z.string().url().describe('The AI-generated image as a base64 data URI.'),
+  imageDataUri: z.string().describe('The AI-generated image as a base64 data URI.'), // Changed from z.string().url()
   insertAfterParagraphContaining: z.string().optional().describe('A short, unique text snippet (e.g., first ~10 words) from a paragraph in the blog post. The image should be inserted AFTER the paragraph that starts with or uniquely contains this snippet. If empty or not found, image might be appended or skipped for inline insertion.')
 });
 export type ImageSuggestion = z.infer<typeof ImageSuggestionSchema>;
@@ -34,3 +34,4 @@ export const GenerateImageConceptsOutputSchema = z.object({
     concepts: z.array(ImageConceptSchema)
 });
 export type GenerateImageConceptsOutput = z.infer<typeof GenerateImageConceptsOutputSchema>;
+

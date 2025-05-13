@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
@@ -403,7 +402,7 @@ const BlogWriterPage = () => {
                                   if (!props.src) {
                                     return null;
                                   }
-                                  return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto"/>;
+                                  return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto block mx-auto"/>;
                                 }
                             }}
                             >
@@ -509,7 +508,7 @@ const BlogWriterPage = () => {
                               if (!props.src) {
                                 return null;
                               }
-                              return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto"/>;
+                              return <img {...props} src={props.src} alt={props.alt || 'Blog image'} className="rounded-lg shadow-md my-4 max-w-full h-auto block mx-auto"/>;
                             }
                           }}
                         >
