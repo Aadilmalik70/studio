@@ -1,11 +1,10 @@
 
 "use client"
 
-import type React from "react"
-import { useRef } from "react"
+import React, { useRef } from "react" // Added React import
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowRight, Sparkles, FileText, SearchCheck, Download, Lightbulb, Target, PenLine, CircleCheckBig, Zap, Clock, Search, ThumbsUp, TrendingUp } from "lucide-react"
+import { ArrowRight, Sparkles, FileText, SearchCheck, Download, Lightbulb, Target, PenLine, CircleCheckBig, Zap, Clock, Search, ThumbsUp, TrendingUp, CalendarDays, Users, BarChart3 } from "lucide-react"
 import Image from 'next/image';
 
 import { Button } from "@/components/ui/button"
