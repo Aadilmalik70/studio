@@ -2,17 +2,19 @@
 
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { generateBlogIdeas, type GenerateBlogIdeasOutput } from '@/ai/flows/generate-blog-ideas';
 import { draftBlogContent, type DraftBlogContentOutput } from '@/ai/flows/draft-blog-content';
 import { optimizeSeo, type OptimizeSeoOutput } from '@/ai/flows/optimize-seo';
-import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Wand2, DraftingCompass, CheckCircle, Save, SearchCheck, Eye, Edit } from 'lucide-react';
 import type { BlogPost } from '@/app/app/dashboard/blog/page'; 
 
 
@@ -40,6 +42,8 @@ const BlogWriterPage = () => {
     seo: false,
     save: false,
   });
+
+  const [showPreview, setShowPreview] = useState(false);
 
   const totalSteps = 4;
   const progressValue = (currentStep / totalSteps) * 100;
@@ -114,6 +118,7 @@ const BlogWriterPage = () => {
       setMetaDescription(result.metaDescription);
       toast({ title: 'Success', description: 'SEO metadata generated!' });
       setCurrentStep(4);
+      setShowPreview(true); // Default to preview mode in step 4
     } catch (error) {
       console.error('Error optimizing SEO:', error);
       toast({ title: 'Error', description: 'Failed to optimize SEO.', variant: 'destructive' });
@@ -127,7 +132,7 @@ const BlogWriterPage = () => {
     const newPost: BlogPost = {
       id: new Date().toISOString(),
       title: blogTitle,
-      content: draftedContent,
+      content: draftedContent, // Save the raw Markdown content
       metaTitle: metaTitle,
       metaDescription: metaDescription,
       outline: blogOutline,
@@ -149,10 +154,6 @@ const BlogWriterPage = () => {
           </Button>
         ),
       });
-      // Optionally reset form or navigate after save
-      // For example, to go to the dashboard: router.push('/app/dashboard/blog');
-      // Or to reset the form for a new post:
-      // setCurrentStep(1); setKeyword(''); setGeneratedIdeas([]); setSelectedIdeaIndex(null); // etc.
     } catch (error) {
         console.error("Failed to save post to localStorage", error);
         toast({ title: 'Error', description: 'Failed to save blog post to local storage.', variant: 'destructive' });
@@ -227,20 +228,22 @@ const BlogWriterPage = () => {
                 {generatedIdeas.length > 0 && (
                   <div className="mt-6 space-y-4">
                     <h3 className="text-lg font-semibold">Choose an Idea:</h3>
-                    {generatedIdeas.map((idea, index) => (
-                      <Card 
-                        key={index} 
-                        className={`cursor-pointer hover:shadow-md transition-shadow ${selectedIdeaIndex === index ? 'border-primary ring-2 ring-primary' : ''}`}
-                        onClick={() => handleSelectIdea(index)}
-                      >
-                        <CardHeader>
-                          <CardTitle className="text-md">{idea.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground whitespace-pre-line">{idea.outline}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    <ScrollArea className="h-[400px] pr-4">
+                      {generatedIdeas.map((idea, index) => (
+                        <Card 
+                          key={index} 
+                          className={`cursor-pointer hover:shadow-md transition-shadow mb-4 ${selectedIdeaIndex === index ? 'border-primary ring-2 ring-primary' : ''}`}
+                          onClick={() => handleSelectIdea(index)}
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-md">{idea.title}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground whitespace-pre-line">{idea.outline}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </ScrollArea>
                   </div>
                 )}
               </CardContent>
@@ -281,7 +284,7 @@ const BlogWriterPage = () => {
                 </Button>
                 {draftedContent && (
                   <div className="mt-6">
-                    <Label htmlFor="draftedContent">Drafted Content</Label>
+                    <Label htmlFor="draftedContent">Drafted Content (Markdown)</Label>
                     <Textarea
                       id="draftedContent"
                       value={draftedContent}
@@ -337,8 +340,14 @@ const BlogWriterPage = () => {
           {currentStep === 4 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review and Save</CardTitle>
-                <CardDescription>Review your generated blog post and save it. You can make final edits to the content below.</CardDescription>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2"><CheckCircle className="text-accent"/> Step 4: Review and Save</CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
+                    {showPreview ? <Edit className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                    {showPreview ? 'Edit Markdown' : 'Preview Content'}
+                  </Button>
+                </div>
+                <CardDescription>Review your generated blog post and save it. {showPreview ? "Previewing content." : "You can make final edits to the Markdown content below."}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
@@ -362,14 +371,22 @@ const BlogWriterPage = () => {
                 </div>
                 <div>
                   <Label htmlFor="reviewDraftedContent" className="text-lg font-semibold">Content:</Label>
-                  <Textarea
-                    id="reviewDraftedContent"
-                    value={draftedContent}
-                    onChange={(e) => setDraftedContent(e.target.value)}
-                    rows={20}
-                    className="mt-1 p-3 bg-muted rounded-md"
-                    placeholder="Your blog post content will appear here..."
-                  />
+                  {showPreview ? (
+                    <ScrollArea className="h-[500px] mt-1 p-3 bg-muted rounded-md border">
+                      <article className="prose dark:prose-invert lg:prose-xl max-w-none">
+                        <ReactMarkdown>{draftedContent}</ReactMarkdown>
+                      </article>
+                    </ScrollArea>
+                  ) : (
+                    <Textarea
+                      id="reviewDraftedContent"
+                      value={draftedContent}
+                      onChange={(e) => setDraftedContent(e.target.value)}
+                      rows={20}
+                      className="mt-1 p-3 bg-muted rounded-md"
+                      placeholder="Your blog post content in Markdown will appear here..."
+                    />
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="reviewMetaTitle" className="text-lg font-semibold">Meta Title:</Label>

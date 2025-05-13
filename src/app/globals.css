@@ -10,20 +10,55 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 260 80% 55%; /* Adjusted primary for slightly deeper purple */
     --primary-foreground: 210 20% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
+    --accent: 240 4.8% 95.9%; /* Consider making accent distinct if needed */
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: 260 80% 55%; /* Adjusted ring to match primary */
     --radius: 0.5rem;
+
+    /* Typography styles */
+    --prose-body: hsl(var(--foreground));
+    --prose-headings: hsl(var(--primary));
+    --prose-lead: hsl(var(--muted-foreground));
+    --prose-links: hsl(var(--primary));
+    --prose-bold: hsl(var(--foreground));
+    --prose-counters: hsl(var(--muted-foreground));
+    --prose-bullets: hsl(var(--muted-foreground));
+    --prose-hr: hsl(var(--border));
+    --prose-quotes: hsl(var(--foreground));
+    --prose-quote-borders: hsl(var(--primary));
+    --prose-captions: hsl(var(--muted-foreground));
+    --prose-code: hsl(var(--primary));
+    --prose-pre-code: hsl(var(--secondary-foreground));
+    --prose-pre-bg: hsl(var(--secondary));
+    --prose-th-borders: hsl(var(--border));
+    --prose-td-borders: hsl(var(--border));
+
+    --prose-invert-body: hsl(var(--foreground)); /* Inverted for dark mode */
+    --prose-invert-headings: hsl(var(--primary));
+    --prose-invert-lead: hsl(var(--muted-foreground));
+    --prose-invert-links: hsl(var(--primary));
+    --prose-invert-bold: hsl(var(--foreground));
+    --prose-invert-counters: hsl(var(--muted-foreground));
+    --prose-invert-bullets: hsl(var(--muted-foreground));
+    --prose-invert-hr: hsl(var(--border));
+    --prose-invert-quotes: hsl(var(--foreground));
+    --prose-invert-quote-borders: hsl(var(--primary));
+    --prose-invert-captions: hsl(var(--muted-foreground));
+    --prose-invert-code: hsl(var(--primary));
+    --prose-invert-pre-code: hsl(var(--secondary-foreground));
+    --prose-invert-pre-bg: hsl(var(--secondary));
+    --prose-invert-th-borders: hsl(var(--border));
+    --prose-invert-td-borders: hsl(var(--border));
   }
 
   .dark {
@@ -33,19 +68,37 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 260 80% 60%; /* Adjusted primary for dark mode */
     --primary-foreground: 210 20% 98%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 240 3.7% 15.9%; 
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: 260 80% 60%; /* Adjusted ring for dark mode */
+
+    /* Typography styles for dark mode */
+    --prose-body: hsl(var(--foreground));
+    --prose-headings: hsl(var(--primary));
+    --prose-lead: hsl(var(--muted-foreground));
+    --prose-links: hsl(var(--primary));
+    --prose-bold: hsl(var(--foreground));
+    --prose-counters: hsl(var(--muted-foreground));
+    --prose-bullets: hsl(var(--muted-foreground));
+    --prose-hr: hsl(var(--border));
+    --prose-quotes: hsl(var(--foreground));
+    --prose-quote-borders: hsl(var(--primary));
+    --prose-captions: hsl(var(--muted-foreground));
+    --prose-code: hsl(var(--primary));
+    --prose-pre-code: hsl(var(--secondary-foreground));
+    --prose-pre-bg: hsl(var(--secondary));
+    --prose-th-borders: hsl(var(--border));
+    --prose-td-borders: hsl(var(--border));
   }
 }
 
@@ -65,3 +118,10 @@
     linear-gradient(to bottom, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
 }
 
+/* Styles for react-markdown rendered content (Tailwind Typography) */
+.prose {
+  /* Add any global prose overrides here if needed, mostly handled by CSS vars */
+}
+.prose :where(img):not(:where([class~="not-prose"] *)) {
+  @apply rounded-md shadow-md; /* Example: style images within markdown */
+}
