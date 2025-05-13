@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -27,7 +28,7 @@ const draftBlogContentPrompt = ai.definePrompt({
   input: {schema: DraftBlogContentInputSchema},
   output: {schema: DraftBlogContentOutputSchema},
   prompt: `You are an AI-powered blog content generator. Generate a comprehensive and engaging blog post draft based on the following outline.
-The blog post should be well-structured, informative, and at least 800 words long.
+The blog post should be well-structured, informative, and at least 1000 words long.
 Ensure proper paragraphing and flow. Use Markdown for formatting (e.g., ## for H2 headings, * for italics, ** for bold, lists).
 
 Outline: {{{outline}}}

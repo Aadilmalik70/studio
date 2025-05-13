@@ -1,6 +1,8 @@
+
 'use server';
 /**
- * @fileOverview AI flow to generate image suggestions (and actual images) for a blog post.
+ * @fileOverview AI flow to generate image suggestions (and actual images) for a blog post,
+ * including hints for inline placement.
  *
  * - suggestImages - A function that generates image concepts and then generates images based on those concepts.
  * - SuggestImagesInput - The input type for the suggestImages function.
@@ -14,6 +16,8 @@ import {
   SuggestImagesOutputSchema,
   type SuggestImagesOutput,
   type ImageSuggestion,
+  GenerateImageConceptsOutputSchema,
+  type ImageConcept,
 } from '@/ai/schemas/suggest-images-schemas';
 
 export type { SuggestImagesInput, SuggestImagesOutput };
@@ -22,46 +26,35 @@ export async function suggestImages(input: SuggestImagesInput): Promise<SuggestI
   return suggestImagesFlow(input);
 }
 
-// This prompt now focuses on generating good "imageConcepts" that can be used as prompts for an image generation AI
 const generateImageConceptsPrompt = ai.definePrompt({
   name: 'generateImageConceptsPrompt',
   input: { schema: SuggestImagesInputSchema },
-  // Output schema for this intermediate step (concepts, not final images yet)
-  output: { 
-    schema: z.object({
-      concepts: z.array(z.object({
-        sectionContext: z.string().optional(),
-        imageConcept: z.string(), // This will be used as the prompt for image generation
-        placementHint: z.string().optional(),
-      })),
-    }),
-  },
+  output: { schema: GenerateImageConceptsOutputSchema },
   prompt: `You are a Visual Content Strategist and Creative Director for blog posts.
-Your task is to analyze the provided blog post content and generate 3 distinct image concepts that would enhance its visual appeal and reader engagement.
-For each concept, provide the following details:
-1.  sectionContext: (Optional) Identify which part of the blog this image is best for (e.g., "Introduction", "Section: Understanding AI", "Conclusion"). If the image is generally applicable, you can omit this.
-2.  imageConcept: A concise and descriptive visual idea. THIS CONCEPT WILL BE DIRECTLY USED AS A PROMPT FOR AN IMAGE GENERATION AI. Make it descriptive and evocative. For example, instead of "AI and writing", suggest "A glowing, abstract representation of a neural network merging with a classic fountain pen on a dark, textured background."
-3.  placementHint: (Optional) A brief suggestion on where this image could be placed within the article relative to the text or headings.
+Your task is to analyze the provided blog post content and generate 1-2 distinct image concepts that would enhance its visual appeal and reader engagement.
+For each concept, provide:
+1.  imageConcept: A concise and descriptive visual idea. THIS CONCEPT WILL BE DIRECTLY USED AS A PROMPT FOR AN IMAGE GENERATION AI. Make it descriptive and evocative. For example, instead of "AI and writing", suggest "A glowing, abstract representation of a neural network merging with a classic fountain pen on a dark, textured background."
+2.  altText: Descriptive alt text for the image that will be generated from the imageConcept. This should be good for SEO and accessibility.
+3.  insertAfterParagraphContaining: A short, unique text snippet (e.g., the first 7-10 words) from a paragraph in the blog post. The image should be inserted *after* the paragraph that contains this exact snippet. If the image is general or for a header, you can leave this field blank or provide a general hint like "Header". Make sure the snippet is unique enough to be found.
 
 Focus on creating concepts that are:
 - Directly relevant to the content of the blog post or a specific section.
 - Illustrative or metaphoric, helping to convey key messages.
 - Visually engaging and of a professional or appropriate tone for a blog.
-- Diverse in concept to offer variety.
 
 Blog Post Title (Optional Context): {{{mainTitle}}}
 
 Full Blog Post Content:
 {{{blogPostContent}}}
 
-Please ensure your output is a valid JSON object matching the requested schema.
+Please ensure your output is a valid JSON object matching the requested schema, providing an array of concept objects under the 'concepts' key.
 Example for one concept object:
 {
-  "sectionContext": "Introduction",
   "imageConcept": "A futuristic cityscape at dawn with data streams flowing between buildings, symbolizing the flow of information in the digital age.",
-  "placementHint": "As a header image or after the first introductory paragraph to set the theme."
-}
-Provide an array of such concept objects under the 'concepts' key.
+  "altText": "Futuristic cityscape at dawn with data streams symbolizing information flow.",
+  "insertAfterParagraphContaining": "The digital age has ushered in an unprecedented flow of information" 
+} 
+If no specific paragraph is suitable, 'insertAfterParagraphContaining' can be an empty string or null.
 `,
 });
 
@@ -72,7 +65,7 @@ const suggestImagesFlow = ai.defineFlow(
     outputSchema: SuggestImagesOutputSchema,
   },
   async (input) => {
-    // Step 1: Generate image concepts
+    // Step 1: Generate image concepts including altText and placement hints
     const conceptsResponse = await generateImageConceptsPrompt(input);
     const concepts = conceptsResponse.output?.concepts;
 
@@ -92,26 +85,25 @@ const suggestImagesFlow = ai.defineFlow(
       try {
         console.log(`SuggestImagesFlow: Generating image for concept: "${concept.imageConcept}"`);
         const { media } = await ai.generate({
-          model: 'googleai/gemini-2.0-flash-exp', // IMPORTANT: Use the specified model for image generation
-          prompt: concept.imageConcept, // Use the concept as the prompt
+          model: 'googleai/gemini-2.0-flash-exp',
+          prompt: concept.imageConcept,
           config: {
-            responseModalities: ['TEXT', 'IMAGE'], // Must provide both
+            responseModalities: ['TEXT', 'IMAGE'],
           },
         });
 
         if (media && media.url) {
           generatedImageSuggestions.push({
-            sectionContext: concept.sectionContext,
-            imageConcept: concept.imageConcept, // This is the prompt used, good for alt text
-            imageDataUri: media.url, // This is the data URI of the generated image
-            placementHint: concept.placementHint,
+            imageConcept: concept.imageConcept,
+            altText: concept.altText,
+            imageDataUri: media.url,
+            insertAfterParagraphContaining: concept.insertAfterParagraphContaining,
           });
         } else {
           console.warn(`SuggestImagesFlow: Image generation failed or returned no media for concept: "${concept.imageConcept}"`);
         }
       } catch (error) {
         console.error(`SuggestImagesFlow: Error generating image for concept "${concept.imageConcept}":`, error);
-        // Optionally, you could add a placeholder or error state for this specific image suggestion
       }
     }
     
