@@ -15,10 +15,13 @@ const KeywordResearchRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   console.log('Received request to /api/keyword-research');
 
-  if (!process.env.GENAI_API_KEY) {
-    console.error('GENAI_API_KEY is not set. AI features will not work. This API endpoint requires it.');
+  // It's crucial that GENAI_API_KEY (or GOOGLE_API_KEY for googleAI plugin) is set.
+  // If Genkit initialization fails due to a missing key in src/ai/genkit.ts,
+  // this route might not even load correctly, leading to an HTML error page.
+  if (!process.env.GENAI_API_KEY && !process.env.GOOGLE_API_KEY) {
+    console.error('CRITICAL SERVER CONFIG ERROR: GENAI_API_KEY or GOOGLE_API_KEY is not set. AI features will not work.');
     return NextResponse.json(
-      { error: 'Server configuration error: GENAI_API_KEY is missing. AI functionalities are disabled for this endpoint.' },
+      { error: 'Server configuration error: AI API Key is missing. AI functionalities are disabled for this endpoint.' },
       { status: 503 } // Service Unavailable
     );
   }
@@ -77,8 +80,11 @@ export async function POST(request: NextRequest) {
     let topicClusters: TopicCluster[] = [];
     if (allGeneratedKeywords.length > 0) {
         const uniqueKeywords = Array.from(new Set(allGeneratedKeywords));
-        const clusteringResult = await clusterKeywords({ keywordsList: uniqueKeywords });
-        topicClusters = clusteringResult.clusters;
+        // Ensure clusterKeywords is called only if uniqueKeywords is not empty to prevent potential errors with empty lists in AI flow
+        if (uniqueKeywords.length > 0) {
+            const clusteringResult = await clusterKeywords({ keywordsList: uniqueKeywords });
+            topicClusters = clusteringResult.clusters;
+        }
     }
 
     const responseData: KeywordResearchResponse = {
@@ -87,7 +93,6 @@ export async function POST(request: NextRequest) {
       questionKeywords,
       longTailKeywords,
       topicClusters,
-      // Keeping the note about sample data if the SEO client is still mock
       error: process.env.MOCK_SEO_API === 'true' ? "Note: Displaying sample data. Real-time SEO data API integration is pending." : null,
     };
 
@@ -96,25 +101,29 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) { 
     console.error('Keyword research API critical error:', error);
     let errorMessage = 'An unexpected error occurred during keyword research.';
-    let errorDetails;
+    let errorDetailsString: string | null = null;
 
     if (error instanceof Error) {
       errorMessage = error.message;
-      errorDetails = error.stack;
+      errorDetailsString = error.stack || 'No stack trace available.';
     } else if (typeof error === 'string') {
       errorMessage = error;
     } else {
+      // Try to get a string representation of the error for logging and response
       try {
-        errorMessage = 'Error object: ' + JSON.stringify(error);
+        const serializedError = JSON.stringify(error);
+        errorMessage = `A non-Error object was thrown during keyword research: ${serializedError}`;
       } catch (stringifyError) {
-        errorMessage = 'Complex error object occurred that could not be stringified.';
+        errorMessage = 'A complex, non-serializable error object was thrown during keyword research.';
       }
     }
     
-    if (!(error instanceof Error)) {
-        console.error('Full error object structure (attempting to log):', error);
-    }
+    // Log the processed error for server-side debugging
+    console.error(`Processed error for API response: Message: "${errorMessage}", Details: "${errorDetailsString || 'N/A'}"`);
 
-    return NextResponse.json({ error: errorMessage, details: errorDetails }, { status: 500 });
+    return NextResponse.json(
+      { error: errorMessage, details: errorDetailsString },
+      { status: 500 }
+    );
   }
 }
